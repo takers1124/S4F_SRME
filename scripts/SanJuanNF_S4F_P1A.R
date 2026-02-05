@@ -39,8 +39,9 @@ writeVector(SJNF_vect, "SJNF_vect.shp")
 SJNF_vect <- vect("SJNF_vect.shp")
 
 
-# here we go!
 # (3) pre-process data ----
+
+# vamos!
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
