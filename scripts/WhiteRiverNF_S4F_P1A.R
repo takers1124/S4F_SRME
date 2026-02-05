@@ -38,6 +38,8 @@ expanse(WRNF_vect) # 10047184922 m^2
 writeVector(WRNF_vect, "WRNF_vect.shp")
 WRNF_vect <- vect("WRNF_vect.shp")
 
+
+
 # (3) pre-process data ----
 
 ## QMD ----

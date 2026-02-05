@@ -38,6 +38,7 @@ expanse(SJNF_vect) # 8476295999 m^2
 writeVector(SJNF_vect, "SJNF_vect.shp")
 SJNF_vect <- vect("SJNF_vect.shp")
 
+
 # (3) pre-process data ----
 
 ## QMD ----
