@@ -39,6 +39,7 @@ writeVector(SJNF_vect, "SJNF_vect.shp")
 SJNF_vect <- vect("SJNF_vect.shp")
 
 
+# here we go!
 # (3) pre-process data ----
 
 ## QMD ----
