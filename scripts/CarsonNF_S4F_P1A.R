@@ -134,12 +134,13 @@ CNF_EVH_filt_rast <- rast("CNF_EVH_filt_rast.tif")
 # these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
-DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
-DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
-DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
+DEM_n37_w106 <- rast("USGS_1_n37w106_20230314.tif")
+DEM_n37_w107 <- rast("USGS_1_n37w107_20230314.tif")
+DEM_n37_w108 <- rast("USGS_1_n37w108_20230602.tif")
+DEM_n36_w106 <- rast("USGS_1_n36w106_20220216.tif")
+
 # mosaic 4 tiles together
-CNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
+CNF_DEM <- mosaic(DEM_n37_w106, DEM_n37_w107, DEM_n37_w108, DEM_n36_w106, fun = "first")
 # project
 CNF_DEM <- project(CNF_DEM, "EPSG:5070")
 

@@ -39,8 +39,7 @@ writeVector(WRNF_vect, "WRNF_vect.shp")
 WRNF_vect <- vect("WRNF_vect.shp")
 
 
-# substantial change to script
-# another 
+
 # (3) pre-process data ----
 
 ## QMD ----
@@ -137,12 +136,22 @@ WRNF_EVH_filt_rast <- rast("WRNF_EVH_filt_rast.tif")
 # these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
-DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20230314.tif")
+DEM_n39_w108 <- rast("USGS_1_n39w108_20230314.tif")
 DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
 DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
-# mosaic 4 tiles together
-WRNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
+DEM_n40_w108 <- rast("USGS_1_n40w108_20230602.tif")
+DEM_n40_w109 <- rast("USGS_1_n40w109_20220216.tif")
+DEM_n41_w107 <- rast("USGS_1_n41w107_20220216.tif")
+DEM_n41_w108 <- rast("USGS_1_n41w108_20230602.tif")
+
+
+# mosaic 8 tiles together
+WRNF_DEM <- mosaic(DEM_n39_w106, DEM_n39_w107, 
+                   DEM_n40_w106, DEM_n40_w107, 
+                   DEM_n40_w108, DEM_n40_w109,
+                   DEM_n41_w107, DEM_n41_w108
+                   fun = "first")
 # project
 WRNF_DEM <- project(WRNF_DEM, "EPSG:5070")
 

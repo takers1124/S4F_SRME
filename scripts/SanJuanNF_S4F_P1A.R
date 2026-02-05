@@ -39,9 +39,8 @@ writeVector(SJNF_vect, "SJNF_vect.shp")
 SJNF_vect <- vect("SJNF_vect.shp")
 
 
-# (3) pre-process data ----
 
-# vamos!
+# (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
@@ -107,7 +106,7 @@ SJNF_EVH_rast <- ifel(
   NA) # if false, make NA
 
 plot(SJNF_EVH_rast)
-global(SJNF_EVH_rast, fun = "notNA") # 5311714
+global(SJNF_EVH_rast, fun = "notNA") # 7061136
 summary(SJNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
@@ -137,12 +136,12 @@ SJNF_EVH_filt_rast <- rast("SJNF_EVH_filt_rast.tif")
 # these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
-DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
-DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
-DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
-# mosaic 4 tiles together
-SJNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
+DEM_n38_w107 <- rast("USGS_1_n38w107_20230314.tif")
+DEM_n38_w108 <- rast("USGS_1_n38w108_20230314.tif")
+DEM_n38_w109 <- rast("USGS_1_n38w109_20230602.tif")
+
+# mosaic 8 tiles together
+SJNF_DEM <- mosaic(DEM_n38_w107, DEM_n38_w108, DEM_n38_w109, fun = "first")
 # project
 SJNF_DEM <- project(SJNF_DEM, "EPSG:5070")
 

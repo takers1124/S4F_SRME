@@ -138,6 +138,7 @@ DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
 DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
 DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
 DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
+
 # mosaic 4 tiles together
 ARNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
 # project

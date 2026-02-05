@@ -104,7 +104,7 @@ RGNF_EVH_rast <- ifel(
   NA) # if false, make NA
 
 plot(RGNF_EVH_rast)
-global(RGNF_EVH_rast, fun = "notNA") # 5311714
+global(RGNF_EVH_rast, fun = "notNA") # 6064506
 summary(RGNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
@@ -134,12 +134,13 @@ RGNF_EVH_filt_rast <- rast("RGNF_EVH_filt_rast.tif")
 # these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
-DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
-DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
-DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
+DEM_n38_w106 <- rast("USGS_1_n38w106_20230314.tif")
+DEM_n38_w107 <- rast("USGS_1_n38w107_20230314.tif")
+DEM_n38_w108 <- rast("USGS_1_n38w108_20230314.tif")
+DEM_n39_w106 <- rast("USGS_1_n39w106_20230602.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20220216.tif")
 # mosaic 4 tiles together
-RGNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
+RGNF_DEM <- mosaic(DEM_n38_w106, DEM_n38_w107, DEM_n38_w108, DEM_n39_w106, DEM_n39_w107, fun = "first")
 # project
 RGNF_DEM <- project(RGNF_DEM, "EPSG:5070")
 
