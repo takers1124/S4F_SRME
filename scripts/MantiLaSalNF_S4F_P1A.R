@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (MLSNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,29 +32,28 @@ MLSNF_full <- project(MLSNF_full,"EPSG:5070")
 expanse(MLSNF_full) # 5723820874 m^2
 5723820874/4046.86 # 4046.86 m/acre = 1414386 acres
 
-# **left off here ----
-### split into multiple polys
-MLSNF_disagg <- disagg(MLSNF_full)
-plot(MLSNF_disagg)
-  # has 12 polys
+# divide into just 2 parts
+# fortunately, this makes an even split between the northern and southern parts of the NF
+MLSNF_divided <- divide(MLSNF_full, n = 2)
+MLSNF_divided$ID <- 1:nrow(MLSNF_divided)
 
-# select for just the part of MLSNF that is within the SRME
-SRME_vect <- vect("SRME_vect.shp")
-MLSNF_vect <- terra::relate(MLSNF_disagg, SRME_vect, relation = "intersects")
-  # tried: within, touches, intersects, and overlaps
+# filter for just the southern half (which is within the SRME)
+MLSNF_vect <- MLSNF_divided %>% 
+  filter(ID == "2")
 plot(MLSNF_vect)
 
-#### write & read ----
+## write & read ----
 writeVector(MLSNF_vect, "MLSNF_vect.shp")
 MLSNF_vect <- vect("MLSNF_vect.shp")
+
 
 # (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 MLSNF_QMD_rast <- crop(QMD_CONUS, MLSNF_vect, mask=TRUE)
@@ -66,11 +63,14 @@ plot(MLSNF_QMD_rast)
 writeRaster(MLSNF_QMD_rast, "MLSNF_QMD_rast.tif")
 MLSNF_QMD_rast <- rast("MLSNF_QMD_rast.tif")
 
-global(MLSNF_QMD_rast, fun = "notNA") # 5697616 cells
+global(MLSNF_QMD_rast, fun = "notNA") # 1975822 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 MLSNF_QMD_filt_rast <- ifel(
-  QMD_MLSNF_rast >= 5, 5, NA 
+  MLSNF_QMD_rast >= 5, 5, NA 
 )
 # if >= 5 inches, reclassify to 5
 # if < 5 inches, reclassify to NA
@@ -85,7 +85,6 @@ writeRaster(MLSNF_QMD_filt_rast, "MLSNF_QMD_filt_rast.tif")
 MLSNF_QMD_filt_rast <- rast("MLSNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -93,15 +92,12 @@ MLSNF_QMD_filt_rast <- rast("MLSNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_MLSNF <- crop(EVH_CONUS, MLSNF_vect, mask=TRUE)
 plot(EVH_MLSNF)
-
-levels_EVH <- levels(EVH_MLSNF)
-is.factor(EVH_MLSNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -116,7 +112,7 @@ MLSNF_EVH_rast <- ifel(
   NA) # if false, make NA
 
 plot(MLSNF_EVH_rast)
-global(MLSNF_EVH_rast, fun = "notNA") # 5311714
+global(MLSNF_EVH_rast, fun = "notNA") # 1930559
 summary(MLSNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
@@ -124,6 +120,9 @@ writeRaster(MLSNF_EVH_rast, "MLSNF_EVH_rast.tif")
 MLSNF_EVH_rast <- rast("MLSNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 MLSNF_EVH_filt_rast <- ifel(
   MLSNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10

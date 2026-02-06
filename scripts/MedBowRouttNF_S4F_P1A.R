@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (MBRNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,17 +32,18 @@ MBRNF_vect <- project(MBRNF_vect,"EPSG:5070")
 expanse(MBRNF_vect) # 11220986892 m^2
 11220986892/4046.86 # 4046.86 m/acre = 2772764 acres
 
-#### write & read ----
+## write & read ----
 writeVector(MBRNF_vect, "MBRNF_vect.shp")
 MBRNF_vect <- vect("MBRNF_vect.shp")
+
 
 # (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 MBRNF_QMD_rast <- crop(QMD_CONUS, MBRNF_vect, mask=TRUE)
@@ -54,11 +53,14 @@ plot(MBRNF_QMD_rast)
 writeRaster(MBRNF_QMD_rast, "MBRNF_QMD_rast.tif")
 MBRNF_QMD_rast <- rast("MBRNF_QMD_rast.tif")
 
-global(MBRNF_QMD_rast, fun = "notNA") # 5697616 cells
+global(MBRNF_QMD_rast, fun = "notNA") # 9678364 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 MBRNF_QMD_filt_rast <- ifel(
-  QMD_MBRNF_rast >= 5, 5, NA 
+  MBRNF_QMD_rast >= 5, 5, NA 
 )
 # if >= 5 inches, reclassify to 5
 # if < 5 inches, reclassify to NA
@@ -73,7 +75,6 @@ writeRaster(MBRNF_QMD_filt_rast, "MBRNF_QMD_filt_rast.tif")
 MBRNF_QMD_filt_rast <- rast("MBRNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -81,15 +82,12 @@ MBRNF_QMD_filt_rast <- rast("MBRNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_MBRNF <- crop(EVH_CONUS, MBRNF_vect, mask=TRUE)
 plot(EVH_MBRNF)
-
-levels_EVH <- levels(EVH_MBRNF)
-is.factor(EVH_MBRNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -104,7 +102,7 @@ MBRNF_EVH_rast <- ifel(
   NA) # if false, make NA
 
 plot(MBRNF_EVH_rast)
-global(MBRNF_EVH_rast, fun = "notNA") # 5311714
+global(MBRNF_EVH_rast, fun = "notNA") # 9148382
 summary(MBRNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
@@ -112,6 +110,9 @@ writeRaster(MBRNF_EVH_rast, "MBRNF_EVH_rast.tif")
 MBRNF_EVH_rast <- rast("MBRNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 MBRNF_EVH_filt_rast <- ifel(
   MBRNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10
@@ -126,23 +127,21 @@ writeRaster(MBRNF_EVH_filt_rast, "MBRNF_EVH_filt_rast.tif")
 MBRNF_EVH_filt_rast <- rast("MBRNF_EVH_filt_rast.tif")
 
 
-
 ## slope ----
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n40_w108 <- rast("USGS_1_n40w108_20220216.tif")
+DEM_n40_w108 <- rast("USGS_1_n40w108_20211208.tif")
 DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
 DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
-DEM_n41_w108 <- rast("USGS_1_n41w108_20230602.tif")
+DEM_n41_w108 <- rast("USGS_1_n41w108_20230314.tif")
 DEM_n42_w106 <- rast("USGS_1_n42w106_20230314.tif")
 DEM_n42_w107 <- rast("USGS_1_n42w107_20230314.tif")
-DEM_n42_w108 <- rast("USGS_1_n42w108_20230602.tif")
-DEM_n43_w106 <- rast("USGS_1_n43w106_20230314.tif")
-DEM_n43_w107 <- rast("USGS_1_n43w107_20230314.tif")
+DEM_n42_w108 <- rast("USGS_1_n42w108_20230314.tif")
+DEM_n43_w106 <- rast("USGS_1_n43w106_20240325.tif")
+DEM_n43_w107 <- rast("USGS_1_n43w107_20240325.tif")
 
 # mosaic 4 tiles together
 MBRNF_DEM <- mosaic(DEM_n40_w108,
@@ -150,13 +149,16 @@ MBRNF_DEM <- mosaic(DEM_n40_w108,
                     DEM_n42_w106, DEM_n42_w107, DEM_n42_w108,
                     DEM_n43_w106, DEM_n43_w107,
                     fun = "first")
+crs(MBRNF_DEM) # EPSG: 4269
+res(MBRNF_DEM) # 0.0002777778
+
 # project
 MBRNF_DEM <- project(MBRNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of MBRNF 
 MBRNF_DEM_rast <- crop(MBRNF_DEM, MBRNF_vect, mask=TRUE)
-plot(MBRNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(MBRNF_DEM_rast))
+plot(MBRNF_DEM_rast) # min = 1527.020, max = 3945.113 (meters)
+plot(is.na(MBRNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(MBRNF_DEM_rast, "MBRNF_DEM_rast.tif")
@@ -170,29 +172,22 @@ plot(MBRNF_slope_rast)
 writeRaster(MBRNF_slope_rast, "MBRNF_slope_rast.tif")
 MBRNF_slope_rast <- rast("MBRNF_slope_rast.tif")
 
-### adjust values ----
-minmax(MBRNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 MBRNF_slope_filt_rast <- ifel(MBRNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(MBRNF_slope_filt_rast)
+plot(MBRNF_slope_filt_rast, col = "mediumorchid2")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(MBRNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(MBRNF_slope_filt_rast, "MBRNF_slope_filt_rast.tif")
 MBRNF_slope_filt_rast <- rast("MBRNF_slope_filt_rast.tif")
 
 
-
 ## road ----
-
 # import CO roads shapefile
 # downloaded from The National Map
 roads_CONUS <- vect("Trans_RoadSegment_0.shp")
@@ -231,13 +226,10 @@ plot(MBRNF_road_dist_rast)
 writeRaster(MBRNF_road_dist_rast, "MBRNF_road_dist_rast.tif")
 MBRNF_road_dist_rast <- rast("MBRNF_road_dist_rast.tif")
 
-### adjust values ----
-minmax(MBRNF_road_dist_rast) 
-# min = 0, max = 37416.17 
-# but the max we want to include is 917.3261 meters (0.57 miles)
-# if < threshold, make value 500
+### filter ----
+# we only want locations with road sitance under 0.57 miles (917.3261 m)
+# make binary values, if > 917.3261 then make NA, else make 500
 
-# make NA all values > 917.3261 meters, make others 500
 MBRNF_road_filt_rast <- ifel(MBRNF_road_dist_rast > 917.3261, NA, 500)
 plot(MBRNF_road_filt_rast)
 
@@ -246,7 +238,7 @@ plot(MBRNF_road_filt_rast)
 MBRNF_road_filt_rast = crop(MBRNF_road_filt_rast, MBRNF_vect, mask = TRUE)
 
 ### viz ----
-plot(MBRNF_road_filt_rast)
+plot(MBRNF_road_filt_rast, col = "slateblue")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1)
 plot(is.na(MBRNF_road_filt_rast))
 
@@ -284,7 +276,7 @@ MBRNF_combined_rast <- app(resampled_rast_stack, fun = "sum", na.rm = TRUE)
 # has values: min = 5, max = 615
 
 ## viz ----
-plot(MBRNF_combined_rast)
+plot(MBRNF_combined_rast, col = "yellow3")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 plot(is.na(MBRNF_combined_rast))
@@ -293,11 +285,13 @@ plot(is.na(MBRNF_combined_rast))
 ## stats ----
 # we want to know what % of the MBRNF each priority factor (PF) & combo occupies
 # need a total # cells in the MBRNF to compare
-global(MBRNF_DEM_rast, fun = "notNA") # 6282487 cells (covers all MBRNF)
+global(MBRNF_DEM_rast, fun = "notNA") # 13858177 cells (covers all MBRNF)
+res(MBRNF_DEM_rast) # 28.497
 # but not same resolution as rest of data
 DEM_resampled <- resample(MBRNF_DEM_rast, MBRNF_EVH_filt_rast, method = "bilinear")
-# now has same "standard" resolution and extent (see above)
-global(DEM_resampled, fun = "notNA") # 7773990 cells (covers all MBRNF)
+# now has same resolution and extent
+global(DEM_resampled, fun = "notNA") # 12504670 cells (covers all MBRNF)
+res(DEM_resampled) # 30
 
 
 ### independent PFs  ----
@@ -530,7 +524,7 @@ sum(small_polys_removed$patch_acres) # 422214.1 acres
 
 
 ## viz ----
-plot(MBRNF_PCUs_1A_vect)
+plot(MBRNF_PCUs_1A_vect, col = "goldenrod1")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 

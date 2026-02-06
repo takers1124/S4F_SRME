@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (CNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,17 +32,18 @@ CNF_vect <- project(CNF_vect,"EPSG:5070")
 expanse(CNF_vect) # 6444515361 m^2
 6444515361/4046.86 # 4046.86 m/acre = 1592473 acres
 
-#### write & read ----
+## write & read ----
 writeVector(CNF_vect, "CNF_vect.shp")
 CNF_vect <- vect("CNF_vect.shp")
+
 
 # (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 CNF_QMD_rast <- crop(QMD_CONUS, CNF_vect, mask=TRUE)
@@ -54,11 +53,14 @@ plot(CNF_QMD_rast)
 writeRaster(CNF_QMD_rast, "CNF_QMD_rast.tif")
 CNF_QMD_rast <- rast("CNF_QMD_rast.tif")
 
-global(CNF_QMD_rast, fun = "notNA") # 5697616 cells
+global(CNF_QMD_rast, fun = "notNA") # 5641440 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 CNF_QMD_filt_rast <- ifel(
-  QMD_CNF_rast >= 5, 5, NA 
+  CNF_QMD_rast >= 5, 5, NA 
 )
 # if >= 5 inches, reclassify to 5
 # if < 5 inches, reclassify to NA
@@ -73,7 +75,6 @@ writeRaster(CNF_QMD_filt_rast, "CNF_QMD_filt_rast.tif")
 CNF_QMD_filt_rast <- rast("CNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -81,15 +82,12 @@ CNF_QMD_filt_rast <- rast("CNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_CNF <- crop(EVH_CONUS, CNF_vect, mask=TRUE)
 plot(EVH_CNF)
-
-levels_EVH <- levels(EVH_CNF)
-is.factor(EVH_CNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -104,7 +102,7 @@ CNF_EVH_rast <- ifel(
   NA) # if false, make NA
 
 plot(CNF_EVH_rast)
-global(CNF_EVH_rast, fun = "notNA") # 5311714
+global(CNF_EVH_rast, fun = "notNA") # 5618557
 summary(CNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
@@ -112,6 +110,9 @@ writeRaster(CNF_EVH_rast, "CNF_EVH_rast.tif")
 CNF_EVH_rast <- rast("CNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 CNF_EVH_filt_rast <- ifel(
   CNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10

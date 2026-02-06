@@ -11,12 +11,9 @@ library(tidyterra)
 library(dplyr)
 
 # (2) create AOI ----
-
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (GMUGNF)
-### load & process ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,17 +31,18 @@ GMUGNF_vect <- project(GMUGNF_vect,"EPSG:5070")
 expanse(GMUGNF_vect) # 12760571788 m^2
 12760571788/4046.86 # 4046.86 m/acre = 3153203 acres
 
-#### write & read ----
+## write & read
 writeVector(GMUGNF_vect, "GMUGNF_vect.shp")
 GMUGNF_vect <- vect("GMUGNF_vect.shp")
+
 
 # (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 GMUGNF_QMD_rast <- crop(QMD_CONUS, GMUGNF_vect, mask=TRUE)
@@ -56,7 +54,10 @@ GMUGNF_QMD_rast <- rast("GMUGNF_QMD_rast.tif")
 
 global(GMUGNF_QMD_rast, fun = "notNA") # 10070898 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 GMUGNF_QMD_filt_rast <- ifel(
   GMUGNF_QMD_rast >= 5, 5, NA 
 )
@@ -73,7 +74,6 @@ writeRaster(GMUGNF_QMD_filt_rast, "GMUGNF_QMD_filt_rast.tif")
 GMUGNF_QMD_filt_rast <- rast("GMUGNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -81,15 +81,12 @@ GMUGNF_QMD_filt_rast <- rast("GMUGNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_GMUGNF <- crop(EVH_CONUS, GMUGNF_vect, mask=TRUE)
 plot(EVH_GMUGNF)
-
-levels_EVH <- levels(EVH_GMUGNF)
-is.factor(EVH_GMUGNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -112,6 +109,9 @@ writeRaster(GMUGNF_EVH_rast, "GMUGNF_EVH_rast.tif")
 GMUGNF_EVH_rast <- rast("GMUGNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 GMUGNF_EVH_filt_rast <- ifel(
   GMUGNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10

@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (RGNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -38,13 +36,14 @@ expanse(RGNF_vect) # 7839907991 m^2
 writeVector(RGNF_vect, "RGNF_vect.shp")
 RGNF_vect <- vect("RGNF_vect.shp")
 
+
 # (3) pre-process data ----
 
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 RGNF_QMD_rast <- crop(QMD_CONUS, RGNF_vect, mask=TRUE)
@@ -56,7 +55,10 @@ RGNF_QMD_rast <- rast("RGNF_QMD_rast.tif")
 
 global(RGNF_QMD_rast, fun = "notNA") # 6115825 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 RGNF_QMD_filt_rast <- ifel(
   RGNF_QMD_rast >= 5, 5, NA 
 )
@@ -73,7 +75,6 @@ writeRaster(RGNF_QMD_filt_rast, "RGNF_QMD_filt_rast.tif")
 RGNF_QMD_filt_rast <- rast("RGNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -81,15 +82,12 @@ RGNF_QMD_filt_rast <- rast("RGNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_RGNF <- crop(EVH_CONUS, RGNF_vect, mask=TRUE)
 plot(EVH_RGNF)
-
-levels_EVH <- levels(EVH_RGNF)
-is.factor(EVH_RGNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -112,6 +110,9 @@ writeRaster(RGNF_EVH_rast, "RGNF_EVH_rast.tif")
 RGNF_EVH_rast <- rast("RGNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 RGNF_EVH_filt_rast <- ifel(
   RGNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10

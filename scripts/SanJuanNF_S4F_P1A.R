@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (SJNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,10 +32,9 @@ SJNF_vect <- project(SJNF_vect,"EPSG:5070")
 expanse(SJNF_vect) # 8476295999 m^2
 8476295999/4046.86 # 4046.86 m/acre = 2094537 acres
 
-#### write & read ----
+## write & read ----
 writeVector(SJNF_vect, "SJNF_vect.shp")
 SJNF_vect <- vect("SJNF_vect.shp")
-
 
 
 # (3) pre-process data ----
@@ -45,8 +42,8 @@ SJNF_vect <- vect("SJNF_vect.shp")
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 SJNF_QMD_rast <- crop(QMD_CONUS, SJNF_vect, mask=TRUE)
@@ -58,7 +55,10 @@ SJNF_QMD_rast <- rast("SJNF_QMD_rast.tif")
 
 global(SJNF_QMD_rast, fun = "notNA") # 7155935 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 SJNF_QMD_filt_rast <- ifel(
   SJNF_QMD_rast >= 5, 5, NA 
 )
@@ -75,7 +75,6 @@ writeRaster(SJNF_QMD_filt_rast, "SJNF_QMD_filt_rast.tif")
 SJNF_QMD_filt_rast <- rast("SJNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -83,15 +82,12 @@ SJNF_QMD_filt_rast <- rast("SJNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_SJNF <- crop(EVH_CONUS, SJNF_vect, mask=TRUE)
 plot(EVH_SJNF)
-
-levels_EVH <- levels(EVH_SJNF)
-is.factor(EVH_SJNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -114,6 +110,9 @@ writeRaster(SJNF_EVH_rast, "SJNF_EVH_rast.tif")
 SJNF_EVH_rast <- rast("SJNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 SJNF_EVH_filt_rast <- ifel(
   SJNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10
