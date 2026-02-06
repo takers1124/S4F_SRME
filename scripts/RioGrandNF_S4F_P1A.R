@@ -132,23 +132,27 @@ RGNF_EVH_filt_rast <- rast("RGNF_EVH_filt_rast.tif")
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n38_w106 <- rast("USGS_1_n38w106_20230314.tif")
-DEM_n38_w107 <- rast("USGS_1_n38w107_20230314.tif")
-DEM_n38_w108 <- rast("USGS_1_n38w108_20230314.tif")
+DEM_n38_w106 <- rast("USGS_1_n38w106_20230602.tif")
+DEM_n38_w107 <- rast("USGS_1_n38w107_20220720.tif")
+DEM_n38_w108 <- rast("USGS_1_n38w108_20220720.tif")
 DEM_n39_w106 <- rast("USGS_1_n39w106_20230602.tif")
-DEM_n39_w107 <- rast("USGS_1_n39w107_20220216.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20220331.tif")
+
 # mosaic 4 tiles together
 RGNF_DEM <- mosaic(DEM_n38_w106, DEM_n38_w107, DEM_n38_w108, DEM_n39_w106, DEM_n39_w107, fun = "first")
+
+crs(RGNF_DEM) # EPSG: 4269
+res(RGNF_DEM) # 0.0002777778
+
 # project
 RGNF_DEM <- project(RGNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of RGNF 
 RGNF_DEM_rast <- crop(RGNF_DEM, RGNF_vect, mask=TRUE)
-plot(RGNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(RGNF_DEM_rast))
+plot(RGNF_DEM_rast) # min = 2297.928 , max = 4365.588  (meters)
+plot(is.na(RGNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(RGNF_DEM_rast, "RGNF_DEM_rast.tif")
@@ -162,25 +166,19 @@ plot(RGNF_slope_rast)
 writeRaster(RGNF_slope_rast, "RGNF_slope_rast.tif")
 RGNF_slope_rast <- rast("RGNF_slope_rast.tif")
 
-### adjust values ----
-minmax(RGNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 RGNF_slope_filt_rast <- ifel(RGNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(RGNF_slope_filt_rast)
+plot(RGNF_slope_filt_rast, col = "mediumorchid2")
 polys(RGNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(RGNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(RGNF_slope_filt_rast, "RGNF_slope_filt_rast.tif")
 RGNF_slope_filt_rast <- rast("RGNF_slope_filt_rast.tif")
-
 
 
 ## road ----

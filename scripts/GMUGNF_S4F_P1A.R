@@ -126,36 +126,38 @@ writeRaster(GMUGNF_EVH_filt_rast, "GMUGNF_EVH_filt_rast.tif")
 GMUGNF_EVH_filt_rast <- rast("GMUGNF_EVH_filt_rast.tif")
 
 
-
 ## slope ----
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n38_w107 <- rast("USGS_1_n38w107_20230314.tif")
-DEM_n38_w108 <- rast("USGS_1_n38w108_20230314.tif")
-DEM_n38_w109 <- rast("USGS_1_n38w109_20230602.tif")
-DEM_n39_w107 <- rast("USGS_1_n39w107_20230314.tif")
-DEM_n39_w108 <- rast("USGS_1_n39w108_20230314.tif")
-DEM_n39_w109 <- rast("USGS_1_n39w109_20230602.tif")
-DEM_n40_w107 <- rast("USGS_1_n40w107_20230314.tif")
-DEM_n40_w108 <- rast("USGS_1_n40w108_20230314.tif")
-DEM_n40_w109 <- rast("USGS_1_n40w109_20230602.tif")
+DEM_n38_w107 <- rast("USGS_1_n38w107_20220720.tif")
+DEM_n38_w108 <- rast("USGS_1_n38w108_20220720.tif")
+DEM_n38_w109 <- rast("USGS_1_n38w109_20220720.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20220331.tif")
+DEM_n39_w108 <- rast("USGS_1_n39w108_20220720.tif")
+DEM_n39_w109 <- rast("USGS_1_n39w109_20211208.tif")
+DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
+DEM_n40_w108 <- rast("USGS_1_n40w108_20211208.tif")
+DEM_n40_w109 <- rast("USGS_1_n40w109_20180328.tif")
 
 # mosaic 9 tiles together
 GMUGNF_DEM <- mosaic(DEM_n38_w107, DEM_n38_w108, DEM_n38_w109,
                      DEM_n39_w107, DEM_n39_w108, DEM_n39_w109, 
                      DEM_n40_w107, DEM_n40_w108, DEM_n40_w109,
                      fun = "first")
+
+crs(GMUGNF_DEM) # EPSG: 4269
+res(GMUGNF_DEM) # 0.0002777778
+
 # project
 GMUGNF_DEM <- project(GMUGNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of GMUGNF 
 GMUGNF_DEM_rast <- crop(GMUGNF_DEM, GMUGNF_vect, mask=TRUE)
-plot(GMUGNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(GMUGNF_DEM_rast))
+plot(GMUGNF_DEM_rast) # min = 1442.115 , max = 4354.024  (meters)
+plot(is.na(GMUGNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(GMUGNF_DEM_rast, "GMUGNF_DEM_rast.tif")
@@ -169,25 +171,19 @@ plot(GMUGNF_slope_rast)
 writeRaster(GMUGNF_slope_rast, "GMUGNF_slope_rast.tif")
 GMUGNF_slope_rast <- rast("GMUGNF_slope_rast.tif")
 
-### adjust values ----
-minmax(GMUGNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 GMUGNF_slope_filt_rast <- ifel(GMUGNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(GMUGNF_slope_filt_rast)
+plot(GMUGNF_slope_filt_rast, col = "mediumorchid2")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(GMUGNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(GMUGNF_slope_filt_rast, "GMUGNF_slope_filt_rast.tif")
 GMUGNF_slope_filt_rast <- rast("GMUGNF_slope_filt_rast.tif")
-
 
 
 ## road ----

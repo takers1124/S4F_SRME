@@ -132,7 +132,6 @@ ARNF_EVH_filt_rast <- rast("ARNF_EVH_filt_rast.tif")
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
 DEM_n41_w106 <- rast("USGS_1_n41w106_20230314.tif")
@@ -142,13 +141,17 @@ DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
 
 # mosaic 4 tiles together
 ARNF_DEM <- mosaic(DEM_n41_w106, DEM_n41_w107, DEM_n40_w106, DEM_n40_w107, fun = "first")
+
+crs(ARNF_DEM) # EPSG: 4269
+res(ARNF_DEM) # 0.0002777778
+
 # project
 ARNF_DEM <- project(ARNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of ARNF 
 ARNF_DEM_rast <- crop(ARNF_DEM, ARNF_vect, mask=TRUE)
-plot(ARNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(ARNF_DEM_rast))
+plot(ARNF_DEM_rast) # min = 1514.981 , max = 4343.173  (meters)
+plot(is.na(ARNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(ARNF_DEM_rast, "ARNF_DEM_rast.tif")
@@ -162,20 +165,15 @@ plot(ARNF_slope_rast)
 writeRaster(ARNF_slope_rast, "ARNF_slope_rast.tif")
 ARNF_slope_rast <- rast("ARNF_slope_rast.tif")
 
-### adjust values ----
-minmax(ARNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 ARNF_slope_filt_rast <- ifel(ARNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(ARNF_slope_filt_rast)
+plot(ARNF_slope_filt_rast, col = "mediumorchid2")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(ARNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(ARNF_slope_filt_rast, "ARNF_slope_filt_rast.tif")

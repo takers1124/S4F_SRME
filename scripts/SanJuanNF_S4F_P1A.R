@@ -132,22 +132,25 @@ SJNF_EVH_filt_rast <- rast("SJNF_EVH_filt_rast.tif")
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n38_w107 <- rast("USGS_1_n38w107_20230314.tif")
-DEM_n38_w108 <- rast("USGS_1_n38w108_20230314.tif")
-DEM_n38_w109 <- rast("USGS_1_n38w109_20230602.tif")
+DEM_n38_w107 <- rast("USGS_1_n38w107_20220720.tif")
+DEM_n38_w108 <- rast("USGS_1_n38w108_20220720.tif")
+DEM_n38_w109 <- rast("USGS_1_n38w109_20220720.tif")
 
 # mosaic 8 tiles together
 SJNF_DEM <- mosaic(DEM_n38_w107, DEM_n38_w108, DEM_n38_w109, fun = "first")
+
+crs(SJNF_DEM) # EPSG: 4269
+res(SJNF_DEM) # 0.0002777778
+
 # project
 SJNF_DEM <- project(SJNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of SJNF 
 SJNF_DEM_rast <- crop(SJNF_DEM, SJNF_vect, mask=TRUE)
-plot(SJNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(SJNF_DEM_rast))
+plot(SJNF_DEM_rast) # min = 1914.808 , max = 4323.411  (meters)
+plot(is.na(SJNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(SJNF_DEM_rast, "SJNF_DEM_rast.tif")
@@ -161,25 +164,19 @@ plot(SJNF_slope_rast)
 writeRaster(SJNF_slope_rast, "SJNF_slope_rast.tif")
 SJNF_slope_rast <- rast("SJNF_slope_rast.tif")
 
-### adjust values ----
-minmax(SJNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 SJNF_slope_filt_rast <- ifel(SJNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(SJNF_slope_filt_rast)
+plot(SJNF_slope_filt_rast, col = "mediumorchid2")
 polys(SJNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(SJNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(SJNF_slope_filt_rast, "SJNF_slope_filt_rast.tif")
 SJNF_slope_filt_rast <- rast("SJNF_slope_filt_rast.tif")
-
 
 
 ## road ----

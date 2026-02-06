@@ -149,6 +149,7 @@ MBRNF_DEM <- mosaic(DEM_n40_w108,
                     DEM_n42_w106, DEM_n42_w107, DEM_n42_w108,
                     DEM_n43_w106, DEM_n43_w107,
                     fun = "first")
+
 crs(MBRNF_DEM) # EPSG: 4269
 res(MBRNF_DEM) # 0.0002777778
 

@@ -10,13 +10,11 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
-# (2) create AOI ----
 
-## MedBow ----
-# the Area of Interest (AOI) for this case study is the Arapaho-Roosevelt National Forest (WRNF)
-### load & process ----
+# (2) create AOI ----
+# load & process
 NF_CONUS_vect <- vect("S_USA.FSCommonNames.shp")
-plot(NF_CONUS_vect)
+crs(NF_CONUS_vect) # EPSG: 4269
 
 # see unique names 
 names(NF_CONUS_vect)
@@ -34,10 +32,9 @@ WRNF_vect <- project(WRNF_vect,"EPSG:5070")
 expanse(WRNF_vect) # 10047184922 m^2
 10047184922/4046.86 # 4046.86 m/acre = 2482711 acres
 
-#### write & read ----
+## write & read ----
 writeVector(WRNF_vect, "WRNF_vect.shp")
 WRNF_vect <- vect("WRNF_vect.shp")
-
 
 
 # (3) pre-process data ----
@@ -45,8 +42,8 @@ WRNF_vect <- vect("WRNF_vect.shp")
 ## QMD ----
 # this is using quadratic mean diameter (QMD) from TreeMap 2022
 QMD_CONUS <- rast("TreeMap2022_CONUS_QMD.tif")
-# already in 5070
-plot(QMD_CONUS)
+crs(QMD_CONUS) # EPSG: 5070
+res(QMD_CONUS) # 30
 
 ### crop and mask ----
 WRNF_QMD_rast <- crop(QMD_CONUS, WRNF_vect, mask=TRUE)
@@ -58,7 +55,10 @@ WRNF_QMD_rast <- rast("WRNF_QMD_rast.tif")
 
 global(WRNF_QMD_rast, fun = "notNA") # 7769855 cells
 
-# reclassify with ifel()
+### filter ----
+# we only want locations with QMD over 5 inches
+# make binary values, if > 5 then make 5, else make NA
+
 WRNF_QMD_filt_rast <- ifel(
   WRNF_QMD_rast >= 5, 5, NA 
 )
@@ -75,7 +75,6 @@ writeRaster(WRNF_QMD_filt_rast, "WRNF_QMD_filt_rast.tif")
 WRNF_QMD_filt_rast <- rast("WRNF_QMD_filt_rast.tif")
 
 
-
 ## EVH ----
 # using existing vegetation height (EVH) from LANDFIRE
 # these values are not continuous
@@ -83,15 +82,12 @@ WRNF_QMD_filt_rast <- rast("WRNF_QMD_filt_rast.tif")
 # e.g. value 103 = tree height of 3 meters
 
 EVH_CONUS <- rast("LC24_EVH_250.tif")
-crs(EVH_CONUS) # 5070
-res(EVH_CONUS) # 30 30
+crs(EVH_CONUS) # EPSG: 5070
+res(EVH_CONUS) # 30
 
 ### crop / mask ----
 EVH_WRNF <- crop(EVH_CONUS, WRNF_vect, mask=TRUE)
 plot(EVH_WRNF)
-
-levels_EVH <- levels(EVH_WRNF)
-is.factor(EVH_WRNF) # TRUE
 
 ### all treed area ----
 # EVH value = 101 = tree height 1 meter
@@ -114,6 +110,9 @@ writeRaster(WRNF_EVH_rast, "WRNF_EVH_rast.tif")
 WRNF_EVH_rast <- rast("WRNF_EVH_rast.tif")
 
 ### filter ----
+# we only want locations with EVH over 10 feet
+# make binary values, if > 10 then make 10, else make NA
+
 WRNF_EVH_filt_rast <- ifel(
   WRNF_EVH_rast >= 10, 
   10, # if at least 10 ft tall, make value = 10
@@ -128,37 +127,38 @@ writeRaster(WRNF_EVH_filt_rast, "WRNF_EVH_filt_rast.tif")
 WRNF_EVH_filt_rast <- rast("WRNF_EVH_filt_rast.tif")
 
 
-
 ## slope ----
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n39_w107 <- rast("USGS_1_n39w107_20230314.tif")
-DEM_n39_w108 <- rast("USGS_1_n39w108_20230314.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20220331.tif")
+DEM_n39_w108 <- rast("USGS_1_n39w108_20220720.tif")
 DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
 DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
 DEM_n40_w108 <- rast("USGS_1_n40w108_20230602.tif")
-DEM_n40_w109 <- rast("USGS_1_n40w109_20220216.tif")
-DEM_n41_w107 <- rast("USGS_1_n41w107_20220216.tif")
-DEM_n41_w108 <- rast("USGS_1_n41w108_20230602.tif")
-
+DEM_n40_w109 <- rast("USGS_1_n40w109_20180328.tif")
+DEM_n41_w107 <- rast("USGS_1_n41w107_20230314.tif")
+DEM_n41_w108 <- rast("USGS_1_n41w108_20230314.tif")
 
 # mosaic 8 tiles together
-WRNF_DEM <- mosaic(DEM_n39_w106, DEM_n39_w107, 
+WRNF_DEM <- mosaic(DEM_n39_w107, DEM_n39_w108, 
                    DEM_n40_w106, DEM_n40_w107, 
                    DEM_n40_w108, DEM_n40_w109,
-                   DEM_n41_w107, DEM_n41_w108
+                   DEM_n41_w107, DEM_n41_w108,
                    fun = "first")
+
+crs(WRNF_DEM) # EPSG: 4269
+res(WRNF_DEM) # 0.0002777778
+
 # project
 WRNF_DEM <- project(WRNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of WRNF 
 WRNF_DEM_rast <- crop(WRNF_DEM, WRNF_vect, mask=TRUE)
-plot(WRNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(WRNF_DEM_rast))
+plot(WRNF_DEM_rast) # min = 1661.947 , max = 4346.247 (meters)
+plot(is.na(WRNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(WRNF_DEM_rast, "WRNF_DEM_rast.tif")
@@ -172,25 +172,19 @@ plot(WRNF_slope_rast)
 writeRaster(WRNF_slope_rast, "WRNF_slope_rast.tif")
 WRNF_slope_rast <- rast("WRNF_slope_rast.tif")
 
-### adjust values ----
-minmax(WRNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 WRNF_slope_filt_rast <- ifel(WRNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(WRNF_slope_filt_rast)
+plot(WRNF_slope_filt_rast, col = "mediumorchid2")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(WRNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(WRNF_slope_filt_rast, "WRNF_slope_filt_rast.tif")
 WRNF_slope_filt_rast <- rast("WRNF_slope_filt_rast.tif")
-
 
 
 ## road ----

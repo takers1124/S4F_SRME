@@ -127,35 +127,38 @@ writeRaster(PSINF_EVH_filt_rast, "PSINF_EVH_filt_rast.tif")
 PSINF_EVH_filt_rast <- rast("PSINF_EVH_filt_rast.tif")
 
 
-
 ## slope ----
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n38_w105 <- rast("USGS_1_n38w105_20230314.tif")
-DEM_n38_w106 <- rast("USGS_1_n38w106_20230314.tif")
+DEM_n38_w105 <- rast("USGS_1_n38w105_20230602.tif")
+DEM_n38_w106 <- rast("USGS_1_n38w106_20230602.tif")
 DEM_n39_w105 <- rast("USGS_1_n39w105_20230602.tif")
-DEM_n39_w106 <- rast("USGS_1_n39w106_20230314.tif")
-DEM_n39_w107 <- rast("USGS_1_n39w107_20230314.tif")
+DEM_n39_w106 <- rast("USGS_1_n39w106_20230602.tif")
+DEM_n39_w107 <- rast("USGS_1_n39w107_20220331.tif")
 DEM_n40_w105 <- rast("USGS_1_n40w105_20230602.tif")
-DEM_n40_w106 <- rast("USGS_1_n40w106_20230314.tif")
-DEM_n40_w107 <- rast("USGS_1_n40w107_20230602.tif")
+DEM_n40_w106 <- rast("USGS_1_n40w106_20230602.tif")
+DEM_n40_w107 <- rast("USGS_1_n40w107_20220216.tif")
 
 # mosaic 8 tiles together
-SJNF_DEM <- mosaic(DEM_n38_w105, DEM_n38_w106,  
-                   DEM_n38_w105, DEM_n38_w106, DEM_n38_w107,
-                   DEM_n38_w105, DEM_n38_w106, DEM_n38_w107,
+PSINF_DEM <- mosaic(DEM_n38_w105, DEM_n38_w106,  
+                   DEM_n39_w105, DEM_n39_w106, DEM_n39_w107,
+                   DEM_n40_w105, DEM_n40_w106, DEM_n40_w107,
                    fun = "first")
+
+crs(PSINF_DEM) # EPSG: 4269
+res(PSINF_DEM) # 0.0002777778
+
 # project
 PSINF_DEM <- project(PSINF_DEM, "EPSG:5070")
+plot(PSINF_DEM)
 
 # crop and mask the DEM to the extent of PSINF 
 PSINF_DEM_rast <- crop(PSINF_DEM, PSINF_vect, mask=TRUE)
-plot(PSINF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(PSINF_DEM_rast))
+plot(PSINF_DEM_rast) # min = 1424.028 , max = 4392.732  (meters)
+plot(is.na(PSINF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(PSINF_DEM_rast, "PSINF_DEM_rast.tif")
@@ -169,25 +172,19 @@ plot(PSINF_slope_rast)
 writeRaster(PSINF_slope_rast, "PSINF_slope_rast.tif")
 PSINF_slope_rast <- rast("PSINF_slope_rast.tif")
 
-### adjust values ----
-minmax(PSINF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 PSINF_slope_filt_rast <- ifel(PSINF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(PSINF_slope_filt_rast)
+plot(PSINF_slope_filt_rast, col = "mediumorchid2")
 polys(PSINF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(PSINF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(PSINF_slope_filt_rast, "PSINF_slope_filt_rast.tif")
 PSINF_slope_filt_rast <- rast("PSINF_slope_filt_rast.tif")
-
 
 
 ## road ----

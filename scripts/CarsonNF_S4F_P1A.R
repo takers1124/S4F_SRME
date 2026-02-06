@@ -127,28 +127,30 @@ writeRaster(CNF_EVH_filt_rast, "CNF_EVH_filt_rast.tif")
 CNF_EVH_filt_rast <- rast("CNF_EVH_filt_rast.tif")
 
 
-
 ## slope ----
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n37_w106 <- rast("USGS_1_n37w106_20230314.tif")
-DEM_n37_w107 <- rast("USGS_1_n37w107_20230314.tif")
-DEM_n37_w108 <- rast("USGS_1_n37w108_20230602.tif")
-DEM_n36_w106 <- rast("USGS_1_n36w106_20220216.tif")
+DEM_n37_w106 <- rast("USGS_1_n37w106_20250311.tif")
+DEM_n37_w107 <- rast("USGS_1_n37w107_20220801.tif")
+DEM_n37_w108 <- rast("USGS_1_n37w108_20220801.tif")
+DEM_n36_w106 <- rast("USGS_1_n36w106_20241210.tif")
 
 # mosaic 4 tiles together
 CNF_DEM <- mosaic(DEM_n37_w106, DEM_n37_w107, DEM_n37_w108, DEM_n36_w106, fun = "first")
+
+crs(CNF_DEM) # EPSG: 4269
+res(CNF_DEM) # 0.0002777778
+
 # project
 CNF_DEM <- project(CNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of CNF 
 CNF_DEM_rast <- crop(CNF_DEM, CNF_vect, mask=TRUE)
-plot(CNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(CNF_DEM_rast))
+plot(CNF_DEM_rast) # min = 1790.530 , max = 4005.903  (meters)
+plot(is.na(CNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(CNF_DEM_rast, "CNF_DEM_rast.tif")
@@ -162,25 +164,19 @@ plot(CNF_slope_rast)
 writeRaster(CNF_slope_rast, "CNF_slope_rast.tif")
 CNF_slope_rast <- rast("CNF_slope_rast.tif")
 
-### adjust values ----
-minmax(CNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 CNF_slope_filt_rast <- ifel(CNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(CNF_slope_filt_rast)
+plot(CNF_slope_filt_rast, col = "mediumorchid2")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(CNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(CNF_slope_filt_rast, "CNF_slope_filt_rast.tif")
 CNF_slope_filt_rast <- rast("CNF_slope_filt_rast.tif")
-
 
 
 ## road ----

@@ -142,22 +142,25 @@ MLSNF_EVH_filt_rast <- rast("MLSNF_EVH_filt_rast.tif")
 # this slope raster is generated using  
 # digital elevation model (DEM) tiles, downloaded from The National Map (USGS)
 # they are 1 Arc Sec
-# these tiles have GEOGCRS NAD83, but are not yet projected
 
 ### load & process DEMs ----
-DEM_n38_w110 <- rast("USGS_1_n38w110_20230314.tif")
-DEM_n39_w109 <- rast("USGS_1_n39w109_20230602.tif")
-DEM_n39_w110 <- rast("USGS_1_n39w110_20220216.tif")
+DEM_n38_w110 <- rast("USGS_1_n38w110_20241031.tif")
+DEM_n39_w109 <- rast("USGS_1_n39w109_20211208.tif")
+DEM_n39_w110 <- rast("USGS_1_n39w110_20241031.tif")
 
 # mosaic 4 tiles together
 MLSNF_DEM <- mosaic(DEM_n38_w110, DEM_n39_w109, DEM_n39_w110, fun = "first")
+
+crs(MLSNF_DEM) # EPSG: 4269
+res(MLSNF_DEM) # 0.0002777778
+
 # project
 MLSNF_DEM <- project(MLSNF_DEM, "EPSG:5070")
 
 # crop and mask the DEM to the extent of MLSNF 
 MLSNF_DEM_rast <- crop(MLSNF_DEM, MLSNF_vect, mask=TRUE)
-plot(MLSNF_DEM_rast) # min = 1470.285 , max = 4393.409 (meters)
-plot(is.na(MLSNF_DEM_rast))
+plot(MLSNF_DEM_rast) # min = 1228.455 , max = 3871.930  (meters)
+plot(is.na(MLSNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
 writeRaster(MLSNF_DEM_rast, "MLSNF_DEM_rast.tif")
@@ -171,25 +174,19 @@ plot(MLSNF_slope_rast)
 writeRaster(MLSNF_slope_rast, "MLSNF_slope_rast.tif")
 MLSNF_slope_rast <- rast("MLSNF_slope_rast.tif")
 
-### adjust values ----
-minmax(MLSNF_slope_rast) 
-# min = 0, max = 72.59397 
-# but the max we want to include is 24 degrees
-# and we want 0-24 degree slope to become 0-1 score (normalize)
+### filter ----
+# we only want locations with slope under 24 degrese
+# make binary values, if > 24 then make NA, else make 100
 
-# make all values > 24 degrees NA, make all other values 100
 MLSNF_slope_filt_rast <- ifel(MLSNF_slope_rast > 24, NA, 100)
 
 ### viz ----
-plot(MLSNF_slope_filt_rast)
+plot(MLSNF_slope_filt_rast, col = "mediumorchid2")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=0.5)
-
-plot(is.na(MLSNF_slope_filt_rast))
 
 #### write & read ----
 writeRaster(MLSNF_slope_filt_rast, "MLSNF_slope_filt_rast.tif")
 MLSNF_slope_filt_rast <- rast("MLSNF_slope_filt_rast.tif")
-
 
 
 ## road ----
