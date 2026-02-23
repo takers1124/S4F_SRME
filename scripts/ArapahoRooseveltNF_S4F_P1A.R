@@ -21,9 +21,9 @@ names(NF_CONUS_vect)
 unique(NF_CONUS_vect$COMMONNAME)
 
 # select for just ARNF 
-ARNF_vect <- NF_CONUS_vect %>%
+ARNF <- NF_CONUS_vect %>%
   filter(COMMONNAME == "Arapaho and Roosevelt National Forests")
-plot(ARNF_vect)
+plot(ARNF)
 
 # project 
 ARNF_vect <- project(ARNF_vect,"EPSG:5070")
@@ -35,6 +35,29 @@ expanse(ARNF_vect) # 6975245280 m^2
 ## write & read ----
 writeVector(ARNF_vect, "ARNF_vect.shp")
 ARNF_vect <- vect("ARNF_vect.shp")
+
+
+
+## remove?
+## state ----
+states_all <- vect("tl_2025_us_state.shp")
+crs(states_all) # EPSG: 4269
+
+# get all 4 states
+states_SRME <- states_all %>% 
+  filter(STUSPS %in% c("CO", "WY", "UT", "NM"))
+plot(states_SRME)
+
+states_SRME_vect <- project(states_SRME, "EPSG:5070")
+
+states_SRME_vect <- aggregate(states_SRME_vect, dissolve = TRUE)
+
+# get just CO
+states_CO <- states_all %>% 
+  filter(STUSPS %in% c("CO"))
+plot(states_CO)
+
+states_CO_vect <- project(states_CO, "EPSG:5070")
 
 
 # (3) pre-process data ----
@@ -182,34 +205,85 @@ ARNF_slope_filt_rast <- rast("ARNF_slope_filt_rast.tif")
 
 
 ## road ----
+### load & process ----
+#### USFS roads ----
+# S_USA.Trans_RoadCore_FS.shp
+# downloaded from the FS Geodata Clearinghouse
+# then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-# import CO roads shapefile
-# downloaded from The National Map
-roads_CONUS <- vect("Trans_RoadSegment_0.shp")
-plot(roads_CONUS)
-crs(roads_CONUS) # EPSG 4269
+USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
+crs(USFS_roads_SRME) # EPSG: 4269
+nrow(USFS_roads_SRME) # 26985
 
-road_df <- as.data.frame(roads_CONUS)
-# could filter by road type, we did not
+# project
+USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
 
-# project, crop & mask 
-roads_CONUS = project(roads_CONUS, "EPSG:5070")
-crs(roads_CONUS) # EPSG 5070
+# get just roads in the ARNF
+USFS_roads_ARNF <- terra::intersect(USFS_roads_SRME_projected, ARNF_vect)
+nrow(USFS_roads_ARNF) # 2825
 
-roads_ARNF = crop(roads_CONUS, ARNF_vect)
-plot(roads_ARNF)
+# filter for specific operational maintenance levels
+# see unique names 
+names(USFS_roads_ARNF)
+unique(USFS_roads_ARNF$OPER_MAINT)
+
+# select for just levels 2-5 
+USFS_roads_ARNF <- USFS_roads_ARNF %>%
+  filter(OPER_MAINT %in% c(
+    "2 - HIGH CLEARANCE VEHICLES",
+    "3 - SUITABLE FOR PASSENGER CARS",
+    "4 - MODERATE DEGREE OF USER COMFORT",
+    "5 - HIGH DEGREE OF USER COMFORT"
+    ))
+
+nrow(USFS_roads_ARNF) # 2399
+plot(USFS_roads_ARNF)
+(2399/2825)* 100 # = 84.92035 % of FS roads retained
+100 - 84.92035 # = 15.07965 % dropped
+
+
+#### USGS roads ----
+# Transportation_National_GDB
+# downloaded from The National Map transportation dataset
+# then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
+
+USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
+crs(USGS_roads_SRME) # EPSG: 4269
+nrow(USGS_roads_SRME) # 132307
+
+# project
+USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+
+# get just roads in the ARNF
+USGS_roads_ARNF <- terra::intersect(USGS_roads_SRME_proj, ARNF_vect)
+nrow(USGS_roads_ARNF) # 19423
+plot(USGS_roads_ARNF)
+
 
 ### rasterize ----
-ARNF_road_rast <- rasterize(roads_ARNF, ARNF_risk_score_rast , touches=TRUE)
-plot(ARNF_road_rast, col="blue") # all values = 1
-plot(is.na(ARNF_road_rast)) # values not 1 are NA
-# TBH, the raster does not look nearly as contiguous as the road lines from the .shp
-# but when I open the .tif in Arc, it looks fine 
-# I think it is too much for R studio to render with plot()
+#### USFS ----
+ARNF_USFS_road_rast <- rasterize(USFS_roads_ARNF, ARNF_QMD_rast , touches=TRUE)
+plot(ARNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
+plot(is.na(ARNF_USFS_road_rast)) # values not 1 are NA
+global(ARNF_USFS_road_rast, fun = "notNA") # 120022 cells not NA
 
-#### write & read file ----
+#### USGS ----
+ARNF_USGS_road_rast <- rasterize(USGS_roads_ARNF, ARNF_QMD_rast , touches=TRUE)
+plot(ARNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
+plot(is.na(ARNF_USGS_road_rast)) # values not 1 are NA
+global(ARNF_USGS_road_rast, fun = "notNA") # 282401 cells not NA
+
+
+### combine ----
+ARNF_road_rast <- cover(ARNF_USFS_road_rast, ARNF_USGS_road_rast)
+plot(ARNF_road_rast)
+plot(is.na(ARNF_road_rast))
+global(ARNF_road_rast, fun = "notNA") # 295373 cells not NA
+
+##### write & read ----
 writeRaster(ARNF_road_rast, "ARNF_road_rast.tif")
-ARNF_road_rast <- rast("ARNF_road_rast.tif") 
+ARNF_road_rast <- rast("ARNF_road_rast.tif")
+
 
 ### distance ----
 # we will calculate the distance to nearest road for each raster cell (pixel)
@@ -221,11 +295,12 @@ plot(ARNF_road_dist_rast)
 writeRaster(ARNF_road_dist_rast, "ARNF_road_dist_rast.tif")
 ARNF_road_dist_rast <- rast("ARNF_road_dist_rast.tif")
 
-### adjust values ----
+
+### filter ----
 minmax(ARNF_road_dist_rast) 
 # min = 0, max = 37416.17 
 # but the max we want to include is 917.3261 meters (0.57 miles)
-# if < threshold, make value 500
+# if > threshold, make NA; else make value = 500
 
 # make NA all values > 917.3261 meters, make others 500
 ARNF_road_filt_rast <- ifel(ARNF_road_dist_rast > 917.3261, NA, 500)
@@ -238,7 +313,6 @@ ARNF_road_filt_rast = crop(ARNF_road_filt_rast, ARNF_vect, mask = TRUE)
 ### viz ----
 plot(ARNF_road_filt_rast)
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1)
-plot(is.na(ARNF_road_filt_rast))
 
 #### write & read ----
 writeRaster(ARNF_road_filt_rast, "ARNF_road_filt_rast.tif")
@@ -249,21 +323,15 @@ ARNF_road_filt_rast <- rast("ARNF_road_filt_rast.tif")
 # (4) combine data ----
 
 ## resample ----
-# first, the rasters need to be resampled so their extents align,
-# and they have matching resolutions and origins
-
-# 3 of the 4 rasters have matching resolutions (QMD, EVH, and road)
-# 2 of the 4 rasters have matching extents (QMD, EVH)
-# 1 of the 4 rasters has no matching resolution or extent (slope)
+# first, the slope raster need to be resampled so the extent & resolution aligns with others
 # I am choosing EVH to use as the template
 
 slope_resampled <- resample(ARNF_slope_filt_rast, ARNF_EVH_filt_rast, method = "near")
-road_resampled <- resample(ARNF_road_filt_rast, ARNF_EVH_filt_rast, method = "near")
 
 raster_list <- list(ARNF_EVH_filt_rast,
                     ARNF_QMD_filt_rast,
-                    slope_resampled,
-                    road_resampled)
+                    ARNF_road_filt_rast,
+                    slope_resampled)
 
 # create a multi-layer raster stack 
 resampled_rast_stack <- rast(raster_list)
@@ -283,7 +351,7 @@ plot(is.na(ARNF_combined_rast))
 ## stats ----
 # we want to know what % of the ARNF each priority factor (PF) & combo occupies
 # need a total # cells in the ARNF to compare
-global(ARNF_DEM_rast, fun = "notNA") # 6282487 cells (covers all ARNF)
+global(ARNF_DEM_rast, fun = "notNA") # 9199894 cells (covers all ARNF)
 # but not same resolution as rest of data
 DEM_resampled <- resample(ARNF_DEM_rast, ARNF_EVH_filt_rast, method = "bilinear")
 # now has same "standard" resolution and extent (see above)
@@ -321,79 +389,78 @@ global(slope_resampled, fun = "notNA") # 6282487 cells
 (6282487/7773990)*100 # 80.81419 % remaining after 24* filter
 
 #### road ----
-# need to use resampled version (above) to get same extent
-global(road_resampled, fun = "notNA") # 5213776 cells 
-# entire ARNF = 7773990 cells 
-(5213776/7773990)*100 # 67.06692 % remaining 
+global(ARNF_road_filt_rast, fun = "notNA") # 5316596 cells
+# entire ARNF = 7773990 cells
+(5316596/7773990)*100 # 68.38954 % remaining
 
 
 ## combined PFs ----
 # we want to know what % of the ARNF each category falls into after combining
 
 # value 5, QMD only
-global(ARNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 25120 cells
-(25120/7773990)*100 # 0.3231288 % of ARNF
+global(ARNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 24212 cells
+(24212/7773990)*100 # 0.3114488 % of ARNF
 
 # value 10, EVH only
-global(ARNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 90042 cells
-(90042/7773990)*100 # 1.158247 % of ARNF
+global(ARNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 86352 cells
+(86352/7773990)*100 # 1.110781 % of ARNF
 
 # value 15, QMD + EVH
-global(ARNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 188102 cells
-(188102/7773990)*100 # 2.419633 % of ARNF
+global(ARNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 176429 cells
+(176429/7773990)*100 # 2.269478 % of ARNF
 
 # value 100, slope only
-global(ARNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 601784 cells
-(601784/7773990)*100 # 7.740993 % of ARNF
+global(ARNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 589281 cells
+(589281/7773990)*100 # 7.580162 % of ARNF
 
 # value 105, slope + QMD
-global(ARNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 89504 cells
-(89504/7773990)*100 # 1.151326 % of ARNF
+global(ARNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 84525 cells
+(84525/7773990)*100 # 1.08728 % of ARNF
 
 # value 110, slope + EVH
-global(ARNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 411384 cells
-(411384/7773990)*100 # 5.2918 % of ARNF
+global(ARNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 391693 cells
+(391693/7773990)*100 # 5.038507 % of ARNF
 
 # value 115, slope + EVH + QMD
-global(ARNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 835573 cells
-(835573/7773990)*100 # 10.74832 % of ARNF
+global(ARNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 790573 cells
+(790573/7773990)*100 # 10.16946 % of ARNF
 
 # value 500, road only
-global(ARNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 211065 cells
-(211065/7773990)*100 # 2.715015 % of ARNF
+global(ARNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 215441 cells
+(215441/7773990)*100 # 2.771305 % of ARNF
 
 # value 505, road + QMD
-global(ARNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 51904 cells
-(51904/7773990)*100 # 0.6676623 % of ARNF
+global(ARNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 52812 cells
+(52812/7773990)*100 # 0.6793423 % of ARNF
 
 # value 510, road + EVH
-global(ARNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 165873 cells
-(165873/7773990)*100 # 2.133692 % of ARNF
+global(ARNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 169563 cells
+(169563/7773990)*100 # 2.181158 % of ARNF
 
 # value 515, road + EVH + QMD
-global(ARNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 440692 cells
-(440692/7773990)*100 # 5.668801 % of ARNF
+global(ARNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 452365 cells
+(452365/7773990)*100 # 5.818955 % of ARNF
 
 # value 600, road + slope
-global(ARNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 990481 cells
-(990481/7773990)*100 # 12.74096 % of ARNF
+global(ARNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 1002984 cells
+(1002984/7773990)*100 # 12.90179 % of ARNF
 
 # value 605, road + slope + QMD
-global(ARNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 253753 cells
-(253753/7773990)*100 # 3.264128 % of ARNF
+global(ARNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 258732 cells
+(258732/7773990)*100 # 3.328175 % of ARNF
 
 # value 610, road + slope + EVH
-global(ARNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 823953 cells
-(823953/7773990)*100 # 10.59884 % of ARNF
+global(ARNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 843644 cells
+(843644/7773990)*100 # 10.85214 % of ARNF
 
 # value 615, road + slope + QMD + EVH
-global(ARNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2276055 cells
-(2276055/7773990)*100 # 29.27782 % of ARNF
+global(ARNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2321055 cells
+(2321055/7773990)*100 # 29.85668 % of ARNF
 
 # value notNA
-global(ARNF_combined_rast, fun = "notNA") # 7455285 cells
-(7455285/7773990)*100 # 95.90037 % of ARNF (equals the sum of above %s)
-100-95.90037 # 4.09963 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
+global(ARNF_combined_rast, fun = "notNA") # 7459661 cells
+(7459661/7773990)*100 # 95.95666 % of ARNF (equals the sum of above %s)
+100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
 
 
 
@@ -404,16 +471,16 @@ ARNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(ARNF_priority_rast, fun = "notNA") # 2276055 cells (same as value=615 above)
-(2276055/7773990)*100 # 29.27782 % of ARNF
+global(ARNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
+(2321055/7773990)*100 # 29.85668 % of ARNF
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(ARNF_priority_rast, transform = FALSE) # 2048449500 m^2
-2048449500/4046.86 # 4046.86 m2/acre = 506182.4 acres
+expanse(ARNF_priority_rast, transform = FALSE) # 2088949500 m^2
+2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
 # entire ARNF = 1723619 acres (calculated from ARNF_vect polygon in Part1A_2)
-(506182.4/1723619)*100 # 29.36742 % of ARNF (same as value=615 above)
+(516190.2/1723619)*100 # 29.94805 % of ARNF (same as value=615 above)
 
 ## viz ----
 plot(ARNF_priority_rast, col = "darkgreen")
