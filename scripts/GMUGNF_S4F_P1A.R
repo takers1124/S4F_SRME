@@ -187,6 +187,66 @@ GMUGNF_slope_filt_rast <- rast("GMUGNF_slope_filt_rast.tif")
 
 
 ## road ----
+### load & process ----
+#### USFS roads ----
+# downloaded from the FS Geodata Clearinghouse
+USFS_roads_all <- vect("S_USA.Trans_RoadCore_FS.shp")
+crs(USFS_roads_all) # EPSG: 4269
+
+# project
+USFS_roads_all_projected <- project(USFS_roads_all, "EPSG:5070")
+
+# crop within GMUGNF 
+USFS_roads_GMUGNF <- crop(USFS_roads_all_projected, GMUGNF_vect)
+plot(USFS_roads_GMUGNF)
+
+# filter for specific operational maintenance levels
+# see unique names 
+names(USFS_roads_GMUGNF)
+unique(USFS_roads_GMUGNF$OPER_MAINT)
+
+# select for just levels 2-5 
+USFS_roads_GMUGNF_vect <- USFS_roads_GMUGNF %>%
+  filter(OPER_MAINT %in% c(
+    "2 - HIGH CLEARANCE VEHICLES",
+    "3 - SUITABLE FOR PASSENGER CARS",
+    "4 - MODERATE DEGREE OF USER COMFORT",
+    "5 - HIGH DEGREE OF USER COMFORT"
+  ))
+
+plot(USFS_roads_GMUGNF_vect)
+# has 2399 geometries
+(2399/2825)* 100 # = 84.92035 % of FS roads retained
+100 - 84.92035 # = 15.07965 % dropped
+
+##### write & read ----
+writeVector(USFS_roads_GMUGNF_vect, "USFS_roads_GMUGNF_vect.shp")
+USFS_roads_GMUGNF_vect <- vect("USFS_roads_GMUGNF_vect.shp")
+
+
+#### USGS roads ----
+# downloaded from The National Map transportation dataset
+
+# set path to .gdb file location
+gdb_path <- file.path("./Transportation_National_GDB/Transportation_National_GDB.gdb") 
+
+USGS_roads_all <- vect(gdb_path, layer = "Trans_RoadSegment")
+crs(USGS_roads_all)
+
+# project
+USGS_roads_all_projected <- project(USGS_roads_all, "EPSG:5070")
+
+# crop within GMUGNF 
+USGS_roads_GMUGNF_vect <- crop(USGS_roads_all_projected, GMUGNF_vect)
+plot(USGS_roads_GMUGNF_vect)
+
+##### write & read ----
+writeVector(USGS_roads_GMUGNF_vect, "USGS_roads_GMUGNF_vect.shp")
+USGS_roads_GMUGNF_vect <- vect("USGS_roads_GMUGNF_vect.shp")
+
+
+
+## road (old) ----
 
 # import CO roads shapefile
 # downloaded from The National Map
