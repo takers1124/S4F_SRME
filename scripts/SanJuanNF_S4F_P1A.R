@@ -180,34 +180,85 @@ SJNF_slope_filt_rast <- rast("SJNF_slope_filt_rast.tif")
 
 
 ## road ----
+### load & process ----
+#### USFS roads ----
+# S_USA.Trans_RoadCore_FS.shp
+# downloaded from the FS Geodata Clearinghouse
+# then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-# import CO roads shapefile
-# downloaded from The National Map
-roads_CONUS <- vect("Trans_RoadSegment_0.shp")
-plot(roads_CONUS)
-crs(roads_CONUS) # EPSG 4269
+USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
+crs(USFS_roads_SRME) # EPSG: 4269
+nrow(USFS_roads_SRME) # 26985
 
-road_df <- as.data.frame(roads_CONUS)
-# could filter by road type, we did not
+# project
+USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
 
-# project, crop & mask 
-roads_CONUS = project(roads_CONUS, "EPSG:5070")
-crs(roads_CONUS) # EPSG 5070
+# get just roads in the SJNF
+USFS_roads_SJNF <- terra::intersect(USFS_roads_SRME_projected, SJNF_vect)
+nrow(USFS_roads_SJNF) # 1796
 
-roads_SJNF = crop(roads_CONUS, SJNF_vect)
-plot(roads_SJNF)
+# filter for specific operational maintenance levels
+# see unique names 
+names(USFS_roads_SJNF)
+unique(USFS_roads_SJNF$OPER_MAINT)
+
+# select for just levels 2-5 
+USFS_roads_SJNF <- USFS_roads_SJNF %>%
+  filter(OPER_MAINT %in% c(
+    "2 - HIGH CLEARANCE VEHICLES",
+    "3 - SUITABLE FOR PASSENGER CARS",
+    "4 - MODERATE DEGREE OF USER COMFORT",
+    "5 - HIGH DEGREE OF USER COMFORT"
+  ))
+
+nrow(USFS_roads_SJNF) # 936
+plot(USFS_roads_SJNF)
+(936/1796)* 100 # = 52.11581 % of FS roads retained
+100 - 52.11581 # = 47.88419 % dropped
+
+
+#### USGS roads ----
+# Transportation_National_GDB
+# downloaded from The National Map transportation dataset
+# then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
+
+USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
+crs(USGS_roads_SRME) # EPSG: 4269
+nrow(USGS_roads_SRME) # 132307
+
+# project
+USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+
+# get just roads in the SJNF
+USGS_roads_SJNF <- terra::intersect(USGS_roads_SRME_proj, SJNF_vect)
+nrow(USGS_roads_SJNF) # 7595
+plot(USGS_roads_SJNF)
+
 
 ### rasterize ----
-SJNF_road_rast <- rasterize(roads_SJNF, SJNF_risk_score_rast , touches=TRUE)
-plot(SJNF_road_rast, col="blue") # all values = 1
-plot(is.na(SJNF_road_rast)) # values not 1 are NA
-# TBH, the raster does not look nearly as contiguous as the road lines from the .shp
-# but when I open the .tif in Arc, it looks fine 
-# I think it is too much for R studio to render with plot()
+#### USFS ----
+SJNF_USFS_road_rast <- rasterize(USFS_roads_SJNF, SJNF_QMD_filt_rast , touches=TRUE)
+plot(SJNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
+plot(is.na(SJNF_USFS_road_rast)) # values not 1 are NA
+global(SJNF_USFS_road_rast, fun = "notNA") # 105141 cells not NA
 
-#### write & read file ----
+#### USGS ----
+SJNF_USGS_road_rast <- rasterize(USGS_roads_SJNF, SJNF_QMD_filt_rast , touches=TRUE)
+plot(SJNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
+plot(is.na(SJNF_USGS_road_rast)) # values not 1 are NA
+global(SJNF_USGS_road_rast, fun = "notNA") # 237704 cells not NA
+
+
+### combine ----
+SJNF_road_rast <- cover(SJNF_USFS_road_rast, SJNF_USGS_road_rast)
+plot(SJNF_road_rast)
+plot(is.na(SJNF_road_rast))
+global(SJNF_road_rast, fun = "notNA") # 243807 cells not NA
+
+##### write & read ----
 writeRaster(SJNF_road_rast, "SJNF_road_rast.tif")
-SJNF_road_rast <- rast("SJNF_road_rast.tif") 
+SJNF_road_rast <- rast("SJNF_road_rast.tif")
+
 
 ### distance ----
 # we will calculate the distance to nearest road for each raster cell (pixel)
@@ -219,24 +270,26 @@ plot(SJNF_road_dist_rast)
 writeRaster(SJNF_road_dist_rast, "SJNF_road_dist_rast.tif")
 SJNF_road_dist_rast <- rast("SJNF_road_dist_rast.tif")
 
-### adjust values ----
+
+### filter ----
 minmax(SJNF_road_dist_rast) 
-# min = 0, max = 37416.17 
+# min = 0, max = 67549.96 
 # but the max we want to include is 917.3261 meters (0.57 miles)
-# if < threshold, make value 500
+# if > threshold, make NA; else make value = 500
 
 # make NA all values > 917.3261 meters, make others 500
 SJNF_road_filt_rast <- ifel(SJNF_road_dist_rast > 917.3261, NA, 500)
 plot(SJNF_road_filt_rast)
 
+
 ### crop ----
 # need to crop again bc the road distance buffer goes a bit outside of the SJNF
 SJNF_road_filt_rast = crop(SJNF_road_filt_rast, SJNF_vect, mask = TRUE)
 
+
 ### viz ----
-plot(SJNF_road_filt_rast)
+plot(SJNF_road_filt_rast, col = "darkorchid2")
 polys(SJNF_vect, col = "black", alpha=0.01, lwd=1)
-plot(is.na(SJNF_road_filt_rast))
 
 #### write & read ----
 writeRaster(SJNF_road_filt_rast, "SJNF_road_filt_rast.tif")
@@ -245,23 +298,16 @@ SJNF_road_filt_rast <- rast("SJNF_road_filt_rast.tif")
 
 
 # (4) combine data ----
-
 ## resample ----
-# first, the rasters need to be resampled so their extents align,
-# and they have matching resolutions and origins
-
-# 3 of the 4 rasters have matching resolutions (QMD, EVH, and road)
-# 2 of the 4 rasters have matching extents (QMD, EVH)
-# 1 of the 4 rasters has no matching resolution or extent (slope)
+# first, the slope raster need to be resampled so the extent & resolution aligns with others
 # I am choosing EVH to use as the template
 
 slope_resampled <- resample(SJNF_slope_filt_rast, SJNF_EVH_filt_rast, method = "near")
-road_resampled <- resample(SJNF_road_filt_rast, SJNF_EVH_filt_rast, method = "near")
 
 raster_list <- list(SJNF_EVH_filt_rast,
                     SJNF_QMD_filt_rast,
-                    slope_resampled,
-                    road_resampled)
+                    SJNF_road_filt_rast,
+                    slope_resampled)
 
 # create a multi-layer raster stack 
 resampled_rast_stack <- rast(raster_list)
@@ -271,17 +317,17 @@ resampled_rast_stack <- rast(raster_list)
 SJNF_combined_rast <- app(resampled_rast_stack, fun = "sum", na.rm = TRUE)
 # has values: min = 5, max = 615
 
+
 ## viz ----
 plot(SJNF_combined_rast)
 polys(SJNF_vect, col = "black", alpha=0.01, lwd=1.5)
-
 plot(is.na(SJNF_combined_rast))
 
 
 ## stats ----
 # we want to know what % of the SJNF each priority factor (PF) & combo occupies
 # need a total # cells in the SJNF to compare
-global(SJNF_DEM_rast, fun = "notNA") # 6282487 cells (covers all SJNF)
+global(SJNF_DEM_rast, fun = "notNA") # 9199894 cells (covers all SJNF)
 # but not same resolution as rest of data
 DEM_resampled <- resample(SJNF_DEM_rast, SJNF_EVH_filt_rast, method = "bilinear")
 # now has same "standard" resolution and extent (see above)
@@ -298,7 +344,6 @@ global(SJNF_QMD_rast, fun = "notNA") # 5697616 cells
 global(SJNF_QMD_filt_rast, fun = "notNA") # 4160703
 (4160703/7773990)*100 # 53.52082 % of SJNF has trees > 5 in QMD
 
-
 #### EVH ----
 # all veg area
 global(EVH_SJNF >= 101, fun = "sum", na.rm = TRUE) # 7001131 cells
@@ -312,87 +357,84 @@ global(SJNF_EVH_rast, fun = "notNA") # 5311714
 global(SJNF_EVH_filt_rast, fun = "notNA") # 5231674
 (5231674/7773990)*100 # 67.29715 % of SJNF has trees > 10 ft
 
-
 #### slope ----
 # need to use resampled version (above) to get same resolution and extent
 global(slope_resampled, fun = "notNA") # 6282487 cells 
 (6282487/7773990)*100 # 80.81419 % remaining after 24* filter
 
 #### road ----
-# need to use resampled version (above) to get same extent
-global(road_resampled, fun = "notNA") # 5213776 cells 
-# entire SJNF = 7773990 cells 
-(5213776/7773990)*100 # 67.06692 % remaining 
+global(SJNF_road_filt_rast, fun = "notNA") # 5316596 cells
+# entire SJNF = 7773990 cells
+(5316596/7773990)*100 # 68.38954 % remaining
 
 
-## combined PFs ----
+### combined PFs ----
 # we want to know what % of the SJNF each category falls into after combining
 
 # value 5, QMD only
-global(SJNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 25120 cells
-(25120/7773990)*100 # 0.3231288 % of SJNF
+global(SJNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 24212 cells
+(24212/7773990)*100 # 0.3114488 % of SJNF
 
 # value 10, EVH only
-global(SJNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 90042 cells
-(90042/7773990)*100 # 1.158247 % of SJNF
+global(SJNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 86352 cells
+(86352/7773990)*100 # 1.110781 % of SJNF
 
 # value 15, QMD + EVH
-global(SJNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 188102 cells
-(188102/7773990)*100 # 2.419633 % of SJNF
+global(SJNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 176429 cells
+(176429/7773990)*100 # 2.269478 % of SJNF
 
 # value 100, slope only
-global(SJNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 601784 cells
-(601784/7773990)*100 # 7.740993 % of SJNF
+global(SJNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 589281 cells
+(589281/7773990)*100 # 7.580162 % of SJNF
 
 # value 105, slope + QMD
-global(SJNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 89504 cells
-(89504/7773990)*100 # 1.151326 % of SJNF
+global(SJNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 84525 cells
+(84525/7773990)*100 # 1.08728 % of SJNF
 
 # value 110, slope + EVH
-global(SJNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 411384 cells
-(411384/7773990)*100 # 5.2918 % of SJNF
+global(SJNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 391693 cells
+(391693/7773990)*100 # 5.038507 % of SJNF
 
 # value 115, slope + EVH + QMD
-global(SJNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 835573 cells
-(835573/7773990)*100 # 10.74832 % of SJNF
+global(SJNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 790573 cells
+(790573/7773990)*100 # 10.16946 % of SJNF
 
 # value 500, road only
-global(SJNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 211065 cells
-(211065/7773990)*100 # 2.715015 % of SJNF
+global(SJNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 215441 cells
+(215441/7773990)*100 # 2.771305 % of SJNF
 
 # value 505, road + QMD
-global(SJNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 51904 cells
-(51904/7773990)*100 # 0.6676623 % of SJNF
+global(SJNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 52812 cells
+(52812/7773990)*100 # 0.6793423 % of SJNF
 
 # value 510, road + EVH
-global(SJNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 165873 cells
-(165873/7773990)*100 # 2.133692 % of SJNF
+global(SJNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 169563 cells
+(169563/7773990)*100 # 2.181158 % of SJNF
 
 # value 515, road + EVH + QMD
-global(SJNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 440692 cells
-(440692/7773990)*100 # 5.668801 % of SJNF
+global(SJNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 452365 cells
+(452365/7773990)*100 # 5.818955 % of SJNF
 
 # value 600, road + slope
-global(SJNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 990481 cells
-(990481/7773990)*100 # 12.74096 % of SJNF
+global(SJNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 1002984 cells
+(1002984/7773990)*100 # 12.90179 % of SJNF
 
 # value 605, road + slope + QMD
-global(SJNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 253753 cells
-(253753/7773990)*100 # 3.264128 % of SJNF
+global(SJNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 258732 cells
+(258732/7773990)*100 # 3.328175 % of SJNF
 
 # value 610, road + slope + EVH
-global(SJNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 823953 cells
-(823953/7773990)*100 # 10.59884 % of SJNF
+global(SJNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 843644 cells
+(843644/7773990)*100 # 10.85214 % of SJNF
 
 # value 615, road + slope + QMD + EVH
-global(SJNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2276055 cells
-(2276055/7773990)*100 # 29.27782 % of SJNF
+global(SJNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2321055 cells
+(2321055/7773990)*100 # 29.85668 % of SJNF
 
 # value notNA
-global(SJNF_combined_rast, fun = "notNA") # 7455285 cells
-(7455285/7773990)*100 # 95.90037 % of SJNF (equals the sum of above %s)
-100-95.90037 # 4.09963 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
-
+global(SJNF_combined_rast, fun = "notNA") # 7459661 cells
+(7459661/7773990)*100 # 95.95666 % of SJNF (equals the sum of above %s)
+100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
 
 
 ## filter & adjust value ----
@@ -402,19 +444,20 @@ SJNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(SJNF_priority_rast, fun = "notNA") # 2276055 cells (same as value=615 above)
-(2276055/7773990)*100 # 29.27782 % of SJNF
+global(SJNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
+(2321055/7773990)*100 # 29.85668 % of SJNF
+
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(SJNF_priority_rast, transform = FALSE) # 2048449500 m^2
-2048449500/4046.86 # 4046.86 m2/acre = 506182.4 acres
+expanse(SJNF_priority_rast, transform = FALSE) # 2088949500 m^2
+2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
 # entire SJNF = 1723619 acres (calculated from SJNF_vect polygon in Part1A_2)
-(506182.4/1723619)*100 # 29.36742 % of SJNF (same as value=615 above)
+(516190.2/1723619)*100 # 29.94805 % of SJNF (almost same as value=615 above)
 
 ## viz ----
-plot(SJNF_priority_rast, col = "darkgreen")
+plot(SJNF_priority_rast, col = "goldenrod1")
 polys(SJNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
@@ -425,39 +468,41 @@ SJNF_priority_rast <- rast("SJNF_priority_rast.tif")
 
 # (5) make PCUs ----
 ## patches ----
-# btw this line took 20 minutes to run
-
+# btw this line took ~20 minutes to run
 priority_patches_all <- patches(SJNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 93608 patches
+# there are 95527 patches
+
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 93608 geometries 
+# there are 95527 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
+
 
 ## separate sizes ----
 # calc area (default in m^2) & convert to acres
 patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
-# filt out small poys (< 20 acres)
+# filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1414 geoms remain
-(1414/134187)*100 # 1.053753 % of polys remain (are >= 20 acres)
+# 1429 geoms remain
+(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1183 geoms
-(1183/1414)*100 # 83.66337 % of polys >= 20 acres are also <= 200 acres
+# 1196 geoms
+(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 231 geoms
+# 233 geoms
 # these do need to be divided
+
 
 ## divide ----
 # calculate divisions needed for each large poly, ensuring at least 2 parts for large polys
@@ -479,20 +524,20 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2847 geoms
+# 2910 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 SJNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4030 geoms
+# 4106 geoms
+
 
 ## adjust ----
-
 # add new ID col & new final area col
 SJNF_PCUs_1A_vect$PCU_ID <- 1:nrow(SJNF_PCUs_1A_vect)
 SJNF_PCUs_1A_vect$area_acres <- expanse(SJNF_PCUs_1A_vect) * 0.000247105
 
 summary(SJNF_PCUs_1A_vect)
-# area_acres min = 16.78, max = 352.67  
+# area_acres min = 20.02, max = 265.60  
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -518,7 +563,7 @@ sum(small_polys_removed$patch_acres) # 422214.1 acres
 
 
 ## viz ----
-plot(SJNF_PCUs_1A_vect)
+plot(SJNF_PCUs_1A_vect, col = "goldenrod1", alpha=0.01, lwd=0.5)
 polys(SJNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
