@@ -38,28 +38,6 @@ ARNF_vect <- vect("ARNF_vect.shp")
 
 
 
-## remove?
-## state ----
-states_all <- vect("tl_2025_us_state.shp")
-crs(states_all) # EPSG: 4269
-
-# get all 4 states
-states_SRME <- states_all %>% 
-  filter(STUSPS %in% c("CO", "WY", "UT", "NM"))
-plot(states_SRME)
-
-states_SRME_vect <- project(states_SRME, "EPSG:5070")
-
-states_SRME_vect <- aggregate(states_SRME_vect, dissolve = TRUE)
-
-# get just CO
-states_CO <- states_all %>% 
-  filter(STUSPS %in% c("CO"))
-plot(states_CO)
-
-states_CO_vect <- project(states_CO, "EPSG:5070")
-
-
 # (3) pre-process data ----
 
 ## QMD ----
