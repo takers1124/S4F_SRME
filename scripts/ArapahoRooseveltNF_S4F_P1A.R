@@ -306,12 +306,14 @@ minmax(ARNF_road_dist_rast)
 ARNF_road_filt_rast <- ifel(ARNF_road_dist_rast > 917.3261, NA, 500)
 plot(ARNF_road_filt_rast)
 
+
 ### crop ----
 # need to crop again bc the road distance buffer goes a bit outside of the ARNF
 ARNF_road_filt_rast = crop(ARNF_road_filt_rast, ARNF_vect, mask = TRUE)
 
+
 ### viz ----
-plot(ARNF_road_filt_rast)
+plot(ARNF_road_filt_rast, col = "darkorchid2")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
@@ -321,7 +323,6 @@ ARNF_road_filt_rast <- rast("ARNF_road_filt_rast.tif")
 
 
 # (4) combine data ----
-
 ## resample ----
 # first, the slope raster need to be resampled so the extent & resolution aligns with others
 # I am choosing EVH to use as the template
@@ -341,10 +342,10 @@ resampled_rast_stack <- rast(raster_list)
 ARNF_combined_rast <- app(resampled_rast_stack, fun = "sum", na.rm = TRUE)
 # has values: min = 5, max = 615
 
+
 ## viz ----
 plot(ARNF_combined_rast)
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
-
 plot(is.na(ARNF_combined_rast))
 
 
@@ -368,7 +369,6 @@ global(ARNF_QMD_rast, fun = "notNA") # 5697616 cells
 global(ARNF_QMD_filt_rast, fun = "notNA") # 4160703
 (4160703/7773990)*100 # 53.52082 % of ARNF has trees > 5 in QMD
 
-
 #### EVH ----
 # all veg area
 global(EVH_ARNF >= 101, fun = "sum", na.rm = TRUE) # 7001131 cells
@@ -382,7 +382,6 @@ global(ARNF_EVH_rast, fun = "notNA") # 5311714
 global(ARNF_EVH_filt_rast, fun = "notNA") # 5231674
 (5231674/7773990)*100 # 67.29715 % of ARNF has trees > 10 ft
 
-
 #### slope ----
 # need to use resampled version (above) to get same resolution and extent
 global(slope_resampled, fun = "notNA") # 6282487 cells 
@@ -394,7 +393,7 @@ global(ARNF_road_filt_rast, fun = "notNA") # 5316596 cells
 (5316596/7773990)*100 # 68.38954 % remaining
 
 
-## combined PFs ----
+### combined PFs ----
 # we want to know what % of the ARNF each category falls into after combining
 
 # value 5, QMD only
@@ -463,7 +462,6 @@ global(ARNF_combined_rast, fun = "notNA") # 7459661 cells
 100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
 
 
-
 ## filter & adjust value ----
 # make cell value = 1 for all areas that meet our PFs & value = NA if not
 ARNF_priority_rast <- ifel(
@@ -474,16 +472,17 @@ ARNF_priority_rast <- ifel(
 global(ARNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
 (2321055/7773990)*100 # 29.85668 % of ARNF
 
+
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
 expanse(ARNF_priority_rast, transform = FALSE) # 2088949500 m^2
 2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
 # entire ARNF = 1723619 acres (calculated from ARNF_vect polygon in Part1A_2)
-(516190.2/1723619)*100 # 29.94805 % of ARNF (same as value=615 above)
+(516190.2/1723619)*100 # 29.94805 % of ARNF (almost same as value=615 above)
 
 ## viz ----
-plot(ARNF_priority_rast, col = "darkgreen")
+plot(ARNF_priority_rast, col = "goldenrod1")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
@@ -494,39 +493,41 @@ ARNF_priority_rast <- rast("ARNF_priority_rast.tif")
 
 # (5) make PCUs ----
 ## patches ----
-# btw this line took 20 minutes to run
-
+# btw this line took ~20 minutes to run
 priority_patches_all <- patches(ARNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 93608 patches
+# there are 95527 patches
+
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 93608 geometries 
+# there are 95527 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
+
 
 ## separate sizes ----
 # calc area (default in m^2) & convert to acres
 patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
-# filt out small poys (< 20 acres)
+# filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1414 geoms remain
-(1414/134187)*100 # 1.053753 % of polys remain (are >= 20 acres)
+# 1429 geoms remain
+(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1183 geoms
-(1183/1414)*100 # 83.66337 % of polys >= 20 acres are also <= 200 acres
+# 1196 geoms
+(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 231 geoms
+# 233 geoms
 # these do need to be divided
+
 
 ## divide ----
 # calculate divisions needed for each large poly, ensuring at least 2 parts for large polys
@@ -548,20 +549,20 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2847 geoms
+# 2910 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 ARNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4030 geoms
+# 4106 geoms
+
 
 ## adjust ----
-
 # add new ID col & new final area col
 ARNF_PCUs_1A_vect$PCU_ID <- 1:nrow(ARNF_PCUs_1A_vect)
 ARNF_PCUs_1A_vect$area_acres <- expanse(ARNF_PCUs_1A_vect) * 0.000247105
 
 summary(ARNF_PCUs_1A_vect)
-# area_acres min = 16.78, max = 352.67  
+# area_acres min = 20.02, max = 265.60  
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -587,7 +588,7 @@ sum(small_polys_removed$patch_acres) # 422214.1 acres
 
 
 ## viz ----
-plot(ARNF_PCUs_1A_vect)
+plot(ARNF_PCUs_1A_vect, col = "goldenrod1", alpha=0.01, lwd=0.5)
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
