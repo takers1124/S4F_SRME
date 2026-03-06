@@ -536,7 +536,7 @@ ARNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
 
 ## adjust ----
 # add new ID col & new final area col
-ARNF_PCUs_1A_vect$PCU_ID <- 1:nrow(ARNF_PCUs_1A_vect)
+ARNF_PCUs_1A_vect$PCU_ID <- paste0("ARNF_PCU_", seq_len(nrow(ARNF_PCUs_1A_vect)))
 ARNF_PCUs_1A_vect$area_acres <- expanse(ARNF_PCUs_1A_vect) * 0.000247105
 
 summary(ARNF_PCUs_1A_vect)
@@ -575,3 +575,5 @@ writeVector(ARNF_PCUs_1A_vect, "ARNF_PCUs_1A_vect.shp")
 ARNF_PCUs_1A_vect <- vect("ARNF_PCUs_1A_vect.shp")
 
 
+
+ARNF_PCUs_1A_vect$PCU_ID <- NULL
