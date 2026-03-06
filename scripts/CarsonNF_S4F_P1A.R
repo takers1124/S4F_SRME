@@ -325,7 +325,7 @@ plot(is.na(CNF_combined_rast))
 
 
 ## stats ----
-# we want to know what % of the CNF each priority factor (PF) & combo occupies
+# we want to know what % of the CNF each priority factor occupies
 # need a total # cells in the CNF to compare
 global(CNF_DEM_rast, fun = "notNA") # 8926021 cells (covers all CNF)
 # but not same resolution as rest of data
@@ -364,7 +364,7 @@ global(CNF_road_filt_rast, fun = "notNA") # 5675161 cells
 
 
 ### combined PFs ----
-# we want to know what % of the CNF meets each priority factor's threshold, after combining
+# we want to know what % of the CNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
 global(CNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2734478 cells
@@ -469,7 +469,7 @@ CNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
 
 ## adjust ----
 # add new ID col & new final area col
-CNF_PCUs_1A_vect$PCU_ID <- 1:nrow(CNF_PCUs_1A_vect)
+CNF_PCUs_1A_vect$PCU_ID <- paste0("CNF_PCU_", seq_len(nrow(CNF_PCUs_1A_vect)))
 CNF_PCUs_1A_vect$area_acres <- expanse(CNF_PCUs_1A_vect) * 0.000247105
 
 summary(CNF_PCUs_1A_vect)
@@ -500,5 +500,4 @@ polys(CNF_vect, col = "black", alpha=0.01, lwd=1.5)
 ### write & read ----
 writeVector(CNF_PCUs_1A_vect, "CNF_PCUs_1A_vect.shp")
 CNF_PCUs_1A_vect <- vect("CNF_PCUs_1A_vect.shp")
-
 

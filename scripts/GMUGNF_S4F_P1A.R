@@ -332,116 +332,50 @@ plot(is.na(GMUGNF_combined_rast))
 
 
 ## stats ----
-# we want to know what % of the GMUGNF each priority factor (PF) & combo occupies
+# we want to know what % of the GMUGNF each priority factor occupies
 # need a total # cells in the GMUGNF to compare
-global(GMUGNF_DEM_rast, fun = "notNA") # 9199894 cells (covers all GMUGNF)
+global(GMUGNF_DEM_rast, fun = "notNA") # 16570239 cells (covers all GMUGNF)
 # but not same resolution as rest of data
 DEM_resampled <- resample(GMUGNF_DEM_rast, GMUGNF_EVH_filt_rast, method = "bilinear")
 # now has same "standard" resolution and extent (see above)
-global(DEM_resampled, fun = "notNA") # 7773990 cells (covers all GMUGNF)
+global(DEM_resampled, fun = "notNA") # 14220592 cells (covers all GMUGNF)
 
 
 ### independent PFs  ----
 #### QMD ----
 # all areas with QMD values
-global(GMUGNF_QMD_rast, fun = "notNA") # 5697616 cells
-(5697616/7773990)*100 # 73.29076 % of GMUGNF has QMD values
+global(GMUGNF_QMD_rast, fun = "notNA") # 10070898 cells
+(10070898/14220592)*100 # 70.81912 % of GMUGNF has QMD values
 
 # areas with QMD > 5 inches
-global(GMUGNF_QMD_filt_rast, fun = "notNA") # 4160703
-(4160703/7773990)*100 # 53.52082 % of GMUGNF has trees > 5 in QMD
+global(GMUGNF_QMD_filt_rast, fun = "notNA") # 7674672
+(7674672/14220592)*100 # 53.96872 % of GMUGNF has trees > 5 in QMD
 
 #### EVH ----
-# all veg area
-global(EVH_GMUGNF >= 101, fun = "sum", na.rm = TRUE) # 7001131 cells
-(7001131/7773990)*100 # 90.0584 % of GMUGNF is vegetated 
-
 # all tree area
-global(GMUGNF_EVH_rast, fun = "notNA") # 5311714
-(5311714/7773990)*100 # 68.32674 % of GMUGNF has trees 
+global(GMUGNF_EVH_rast, fun = "notNA") # 10071238
+(10071238/14220592)*100 # 70.82151 % of GMUGNF has trees 
 
 # trees > 10 ft area
-global(GMUGNF_EVH_filt_rast, fun = "notNA") # 5231674
-(5231674/7773990)*100 # 67.29715 % of GMUGNF has trees > 10 ft
+global(GMUGNF_EVH_filt_rast, fun = "notNA") # 9805068
+(9805068/14220592)*100 # 68.94979 % of GMUGNF has trees > 10 ft
 
 #### slope ----
 # need to use resampled version (above) to get same resolution and extent
-global(slope_resampled, fun = "notNA") # 6282487 cells 
-(6282487/7773990)*100 # 80.81419 % remaining after 24* filter
+global(slope_resampled, fun = "notNA") # 11223232 cells 
+(11223232/14220592)*100 # 78.9224 % remaining after 24* filter
 
 #### road ----
-global(GMUGNF_road_filt_rast, fun = "notNA") # 5316596 cells
-# entire GMUGNF = 7773990 cells
-(5316596/7773990)*100 # 68.38954 % remaining
+global(GMUGNF_road_filt_rast, fun = "notNA") # 8129888 cells
+(8129888/14220592)*100 # 57.16983 % remaining
 
 
 ### combined PFs ----
-# we want to know what % of the GMUGNF each category falls into after combining
+# we want to know what % of the GMUGNF meets all of the priority factor thresholds, after combining
 
-# value 5, QMD only
-global(GMUGNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 24212 cells
-(24212/7773990)*100 # 0.3114488 % of GMUGNF
-
-# value 10, EVH only
-global(GMUGNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 86352 cells
-(86352/7773990)*100 # 1.110781 % of GMUGNF
-
-# value 15, QMD + EVH
-global(GMUGNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 176429 cells
-(176429/7773990)*100 # 2.269478 % of GMUGNF
-
-# value 100, slope only
-global(GMUGNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 589281 cells
-(589281/7773990)*100 # 7.580162 % of GMUGNF
-
-# value 105, slope + QMD
-global(GMUGNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 84525 cells
-(84525/7773990)*100 # 1.08728 % of GMUGNF
-
-# value 110, slope + EVH
-global(GMUGNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 391693 cells
-(391693/7773990)*100 # 5.038507 % of GMUGNF
-
-# value 115, slope + EVH + QMD
-global(GMUGNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 790573 cells
-(790573/7773990)*100 # 10.16946 % of GMUGNF
-
-# value 500, road only
-global(GMUGNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 215441 cells
-(215441/7773990)*100 # 2.771305 % of GMUGNF
-
-# value 505, road + QMD
-global(GMUGNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 52812 cells
-(52812/7773990)*100 # 0.6793423 % of GMUGNF
-
-# value 510, road + EVH
-global(GMUGNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 169563 cells
-(169563/7773990)*100 # 2.181158 % of GMUGNF
-
-# value 515, road + EVH + QMD
-global(GMUGNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 452365 cells
-(452365/7773990)*100 # 5.818955 % of GMUGNF
-
-# value 600, road + slope
-global(GMUGNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 1002984 cells
-(1002984/7773990)*100 # 12.90179 % of GMUGNF
-
-# value 605, road + slope + QMD
-global(GMUGNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 258732 cells
-(258732/7773990)*100 # 3.328175 % of GMUGNF
-
-# value 610, road + slope + EVH
-global(GMUGNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 843644 cells
-(843644/7773990)*100 # 10.85214 % of GMUGNF
-
-# value 615, road + slope + QMD + EVH
-global(GMUGNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2321055 cells
-(2321055/7773990)*100 # 29.85668 % of GMUGNF
-
-# value notNA
-global(GMUGNF_combined_rast, fun = "notNA") # 7459661 cells
-(7459661/7773990)*100 # 95.95666 % of GMUGNF (equals the sum of above %s)
-100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
+# value 615 = road + slope + QMD + EVH
+global(GMUGNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3732527 cells
+(3732527/14220592)*100 # 26.24734 % of GMUGNF
 
 
 ## filter & adjust value ----
@@ -451,17 +385,19 @@ GMUGNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(GMUGNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
-(2321055/7773990)*100 # 29.85668 % of GMUGNF
+global(GMUGNF_priority_rast, fun = "notNA") # 3732527 cells (same as value=615 above)
+(3732527/14220592)*100 # 26.24734 % of GMUGNF
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(GMUGNF_priority_rast, transform = FALSE) # 2088949500 m^2
-2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
-# entire GMUGNF = 1723619 acres (calculated from GMUGNF_vect polygon in Part1A_2)
-(516190.2/1723619)*100 # 29.94805 % of GMUGNF (almost same as value=615 above)
+expanse(GMUGNF_priority_rast, transform = FALSE) # 3359274300 m^2
+3359274300/4046.86 # 4046.86 m2/acre = 830094 acres
+
+# entire GMUGNF = 3153203 acres (calculated from GMUGNF_vect polygon in Part1A_2)
+(830094/3153203)*100 # 26.32542 % of GMUGNF (almost same as value=615 above)
+
 
 ## viz ----
 plot(GMUGNF_priority_rast, col = "goldenrod1")
@@ -477,12 +413,12 @@ GMUGNF_priority_rast <- rast("GMUGNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(GMUGNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 95527 patches
+# there are 145492  patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 95527 geometries 
+# there are 145492 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -494,20 +430,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1429 geoms remain
-(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
-# so ~99 % of patches/polys were < 20 acres (isolated areas)
+# 2018 geoms remain
+(2018/145492)*100 # 1.387018 % of polys remain (are >= 20 acres)
+# so ~98.6 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1196 geoms
-(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
+# 1630 geoms
+(1630/2018)*100 # 80.77304 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 233 geoms
+# 388 geoms
 # these do need to be divided
 
 
@@ -531,20 +467,20 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2910 geoms
+# 4948 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 GMUGNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4106 geoms
+# 6578 geoms
 
 
 ## adjust ----
 # add new ID col & new final area col
-GMUGNF_PCUs_1A_vect$PCU_ID <- 1:nrow(GMUGNF_PCUs_1A_vect)
+GMUGNF_PCUs_1A_vect$PCU_ID <- paste0("GMUGNF_PCU_", seq_len(nrow(GMUGNF_PCUs_1A_vect)))
 GMUGNF_PCUs_1A_vect$area_acres <- expanse(GMUGNF_PCUs_1A_vect) * 0.000247105
 
 summary(GMUGNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 265.60  
+# area_acres min = 20.02, max = 329.77    
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -553,20 +489,14 @@ GMUGNF_PCUs_1A_vect <- GMUGNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 GMUGNF_PCUs_1A_df <- as.data.frame(GMUGNF_PCUs_1A_vect)
 
-sum(GMUGNF_PCUs_1A_vect$area_acres) # 422214.1 acres
-sum(small_polys_removed$patch_acres) # 422214.1 acres
+sum(GMUGNF_PCUs_1A_vect$area_acres) # 709148.9 acres
+sum(small_polys_removed$patch_acres) # 709148.9 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
-# GMUGNF is 1723619 acres 
-(422214.1/1723619)*100 # 24.49579 % of GMUGNF are highest priority areas (PCUs)
-
-# for reference, 
-(506182.4/1723619)*100 # 29.36742 % of GMUGNF meets PFs (GMUGNF_priority_rast values = 1)
-
-(422214.1/506182.4)*100 # 83.41145 % of the areas that meet basic priorities
-# are continuous PCUs > 20 acres
+# GMUGNF is 3153203 acres 
+(709148.9/3153203)*100 # 22.4898 % of GMUGNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -577,5 +507,6 @@ polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1.5)
 ### write & read ----
 writeVector(GMUGNF_PCUs_1A_vect, "GMUGNF_PCUs_1A_vect.shp")
 GMUGNF_PCUs_1A_vect <- vect("GMUGNF_PCUs_1A_vect.shp")
+
 
 
