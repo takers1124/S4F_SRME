@@ -549,20 +549,14 @@ ARNF_PCUs_1A_vect <- ARNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 ARNF_PCUs_1A_df <- as.data.frame(ARNF_PCUs_1A_vect)
 
-sum(ARNF_PCUs_1A_vect$area_acres) # 422214.1 acres
-sum(small_polys_removed$patch_acres) # 422214.1 acres
+sum(ARNF_PCUs_1A_vect$area_acres) # 430773.6 acres
+sum(small_polys_removed$patch_acres) # 430773.6 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # ARNF is 1723619 acres 
-(422214.1/1723619)*100 # 24.49579 % of ARNF are highest priority areas (PCUs)
-
-# for reference, 
-(506182.4/1723619)*100 # 29.36742 % of ARNF meets PFs (ARNF_priority_rast values = 1)
-
-(422214.1/506182.4)*100 # 83.41145 % of the areas that meet basic priorities
-# are continuous PCUs > 20 acres
+(430773.6/1723619)*100 # 24.49579 % of ARNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -575,5 +569,3 @@ writeVector(ARNF_PCUs_1A_vect, "ARNF_PCUs_1A_vect.shp")
 ARNF_PCUs_1A_vect <- vect("ARNF_PCUs_1A_vect.shp")
 
 
-
-ARNF_PCUs_1A_vect$PCU_ID <- NULL

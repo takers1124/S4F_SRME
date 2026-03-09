@@ -330,114 +330,48 @@ plot(is.na(SFNF_combined_rast))
 ## stats ----
 # we want to know what % of the SFNF each priority factor (PF) & combo occupies
 # need a total # cells in the SFNF to compare
-global(SFNF_DEM_rast, fun = "notNA") # 9199894 cells (covers all SFNF)
+global(SFNF_DEM_rast, fun = "notNA") # 9426497 cells (covers all SFNF)
 # but not same resolution as rest of data
 DEM_resampled <- resample(SFNF_DEM_rast, SFNF_EVH_filt_rast, method = "bilinear")
 # now has same "standard" resolution and extent (see above)
-global(DEM_resampled, fun = "notNA") # 7773990 cells (covers all SFNF)
+global(DEM_resampled, fun = "notNA") # 7583452 cells (covers all SFNF)
 
 
 ### independent PFs  ----
 #### QMD ----
 # all areas with QMD values
-global(SFNF_QMD_rast, fun = "notNA") # 5697616 cells
-(5697616/7773990)*100 # 73.29076 % of SFNF has QMD values
+global(SFNF_QMD_rast, fun = "notNA") # 6090165 cells
+(6090165/7583452)*100 # 80.30861 % of SFNF has QMD values
 
 # areas with QMD > 5 inches
-global(SFNF_QMD_filt_rast, fun = "notNA") # 4160703
-(4160703/7773990)*100 # 53.52082 % of SFNF has trees > 5 in QMD
+global(SFNF_QMD_filt_rast, fun = "notNA") # 4616580
+(4616580/7583452)*100 # 60.87703 % of SFNF has trees > 5 in QMD
 
 #### EVH ----
-# all veg area
-global(EVH_SFNF >= 101, fun = "sum", na.rm = TRUE) # 7001131 cells
-(7001131/7773990)*100 # 90.0584 % of SFNF is vegetated 
-
 # all tree area
-global(SFNF_EVH_rast, fun = "notNA") # 5311714
-(5311714/7773990)*100 # 68.32674 % of SFNF has trees 
+global(SFNF_EVH_rast, fun = "notNA") # 5943311
+(5943311/7583452)*100 # 78.37211 % of SFNF has trees 
 
 # trees > 10 ft area
-global(SFNF_EVH_filt_rast, fun = "notNA") # 5231674
-(5231674/7773990)*100 # 67.29715 % of SFNF has trees > 10 ft
+global(SFNF_EVH_filt_rast, fun = "notNA") # 5389445
+(5389445/7583452)*100 # 71.06849 % of SFNF has trees > 10 ft
 
 #### slope ----
 # need to use resampled version (above) to get same resolution and extent
-global(slope_resampled, fun = "notNA") # 6282487 cells 
-(6282487/7773990)*100 # 80.81419 % remaining after 24* filter
+global(slope_resampled, fun = "notNA") # 6331391 cells 
+(6331391/7583452)*100 # 83.48956 % remaining after 24* filter
 
 #### road ----
-global(SFNF_road_filt_rast, fun = "notNA") # 5316596 cells
-# entire SFNF = 7773990 cells
-(5316596/7773990)*100 # 68.38954 % remaining
+global(SFNF_road_filt_rast, fun = "notNA") # 5397294 cells
+(5397294/7583452)*100 # 71.17199 % remaining
 
 
 ### combined PFs ----
-# we want to know what % of the SFNF each category falls into after combining
+# we want to know what % of the SFNF meets all of the priority factor thresholds, after combining
 
-# value 5, QMD only
-global(SFNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 24212 cells
-(24212/7773990)*100 # 0.3114488 % of SFNF
-
-# value 10, EVH only
-global(SFNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 86352 cells
-(86352/7773990)*100 # 1.110781 % of SFNF
-
-# value 15, QMD + EVH
-global(SFNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 176429 cells
-(176429/7773990)*100 # 2.269478 % of SFNF
-
-# value 100, slope only
-global(SFNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 589281 cells
-(589281/7773990)*100 # 7.580162 % of SFNF
-
-# value 105, slope + QMD
-global(SFNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 84525 cells
-(84525/7773990)*100 # 1.08728 % of SFNF
-
-# value 110, slope + EVH
-global(SFNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 391693 cells
-(391693/7773990)*100 # 5.038507 % of SFNF
-
-# value 115, slope + EVH + QMD
-global(SFNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 790573 cells
-(790573/7773990)*100 # 10.16946 % of SFNF
-
-# value 500, road only
-global(SFNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 215441 cells
-(215441/7773990)*100 # 2.771305 % of SFNF
-
-# value 505, road + QMD
-global(SFNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 52812 cells
-(52812/7773990)*100 # 0.6793423 % of SFNF
-
-# value 510, road + EVH
-global(SFNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 169563 cells
-(169563/7773990)*100 # 2.181158 % of SFNF
-
-# value 515, road + EVH + QMD
-global(SFNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 452365 cells
-(452365/7773990)*100 # 5.818955 % of SFNF
-
-# value 600, road + slope
-global(SFNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 1002984 cells
-(1002984/7773990)*100 # 12.90179 % of SFNF
-
-# value 605, road + slope + QMD
-global(SFNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 258732 cells
-(258732/7773990)*100 # 3.328175 % of SFNF
-
-# value 610, road + slope + EVH
-global(SFNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 843644 cells
-(843644/7773990)*100 # 10.85214 % of SFNF
-
-# value 615, road + slope + QMD + EVH
-global(SFNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2321055 cells
-(2321055/7773990)*100 # 29.85668 % of SFNF
-
-# value notNA
-global(SFNF_combined_rast, fun = "notNA") # 7459661 cells
-(7459661/7773990)*100 # 95.95666 % of SFNF (equals the sum of above %s)
-100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
+# value 615 = road + slope + QMD + EVH
+global(SFNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2527628 cells
+(2527628/7583452)*100 # 33.33084 % of SFNF
 
 
 ## filter & adjust value ----
@@ -447,17 +381,16 @@ SFNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(SFNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
-(2321055/7773990)*100 # 29.85668 % of SFNF
+global(SFNF_priority_rast, fun = "notNA") # 2527628 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(SFNF_priority_rast, transform = FALSE) # 2088949500 m^2
-2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
-# entire SFNF = 1723619 acres (calculated from SFNF_vect polygon in Part1A_2)
-(516190.2/1723619)*100 # 29.94805 % of SFNF (almost same as value=615 above)
+expanse(SFNF_priority_rast, transform = FALSE) # 2274865200 m^2
+2274865200/4046.86 # 4046.86 m2/acre = 562130.9 acres
+# entire SFNF = 1681804 acres (calculated from SFNF_vect polygon in Part1A_2)
+(562130.9/1681804)*100 # 33.42428 % of SFNF (almost same as value=615 above)
 
 ## viz ----
 plot(SFNF_priority_rast, col = "goldenrod1")
@@ -473,12 +406,12 @@ SFNF_priority_rast <- rast("SFNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(SFNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 95527 patches
+# there are 104422 patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 95527 geometries 
+# there are 104422 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -490,20 +423,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1429 geoms remain
-(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
+# 1319 geoms remain
+(1319/104422)*100 # 1.263144 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1196 geoms
-(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
+# 1148 geoms
+(1148/1319)*100 # 87.03563 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 233 geoms
+# 171 geoms
 # these do need to be divided
 
 
@@ -527,20 +460,20 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2910 geoms
+# 3288 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 SFNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4106 geoms
+# 4436 geoms
 
 
 ## adjust ----
 # add new ID col & new final area col
-SFNF_PCUs_1A_vect$PCU_ID <- 1:nrow(SFNF_PCUs_1A_vect)
+SFNF_PCUs_1A_vect$PCU_ID <- paste0("SFNF_PCU_", seq_len(nrow(SFNF_PCUs_1A_vect)))
 SFNF_PCUs_1A_vect$area_acres <- expanse(SFNF_PCUs_1A_vect) * 0.000247105
 
 summary(SFNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 265.60  
+# area_acres min = 20.02, max = 331.69    
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -549,20 +482,14 @@ SFNF_PCUs_1A_vect <- SFNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 SFNF_PCUs_1A_df <- as.data.frame(SFNF_PCUs_1A_vect)
 
-sum(SFNF_PCUs_1A_vect$area_acres) # 422214.1 acres
-sum(small_polys_removed$patch_acres) # 422214.1 acres
+sum(SFNF_PCUs_1A_vect$area_acres) # 472116.1 acres
+sum(small_polys_removed$patch_acres) # 472116.1 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
-# SFNF is 1723619 acres 
-(422214.1/1723619)*100 # 24.49579 % of SFNF are highest priority areas (PCUs)
-
-# for reference, 
-(506182.4/1723619)*100 # 29.36742 % of SFNF meets PFs (SFNF_priority_rast values = 1)
-
-(422214.1/506182.4)*100 # 83.41145 % of the areas that meet basic priorities
-# are continuous PCUs > 20 acres
+# SFNF is 1681804 acres 
+(472116.1/1681804)*100 # 28.072 % of SFNF are highest priority areas (PCUs)
 
 
 ## viz ----

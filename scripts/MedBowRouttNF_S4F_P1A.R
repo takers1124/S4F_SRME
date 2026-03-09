@@ -336,114 +336,48 @@ plot(is.na(MBRNF_combined_rast))
 ## stats ----
 # we want to know what % of the MBRNF each priority factor (PF) & combo occupies
 # need a total # cells in the MBRNF to compare
-global(MBRNF_DEM_rast, fun = "notNA") # 9199894 cells (covers all MBRNF)
+global(MBRNF_DEM_rast, fun = "notNA") # 13858177 cells (covers all MBRNF)
 # but not same resolution as rest of data
 DEM_resampled <- resample(MBRNF_DEM_rast, MBRNF_EVH_filt_rast, method = "bilinear")
 # now has same "standard" resolution and extent (see above)
-global(DEM_resampled, fun = "notNA") # 7773990 cells (covers all MBRNF)
+global(DEM_resampled, fun = "notNA") # 12504670 cells (covers all MBRNF)
 
 
 ### independent PFs  ----
 #### QMD ----
 # all areas with QMD values
-global(MBRNF_QMD_rast, fun = "notNA") # 5697616 cells
-(5697616/7773990)*100 # 73.29076 % of MBRNF has QMD values
+global(MBRNF_QMD_rast, fun = "notNA") # 9678364 cells
+(9678364/12504670)*100 # 77.398 % of MBRNF has QMD values
 
 # areas with QMD > 5 inches
-global(MBRNF_QMD_filt_rast, fun = "notNA") # 4160703
-(4160703/7773990)*100 # 53.52082 % of MBRNF has trees > 5 in QMD
+global(MBRNF_QMD_filt_rast, fun = "notNA") # 6702333
+(6702333/12504670)*100 # 53.59864 % of MBRNF has trees > 5 in QMD
 
 #### EVH ----
-# all veg area
-global(EVH_MBRNF >= 101, fun = "sum", na.rm = TRUE) # 7001131 cells
-(7001131/7773990)*100 # 90.0584 % of MBRNF is vegetated 
-
 # all tree area
-global(MBRNF_EVH_rast, fun = "notNA") # 5311714
-(5311714/7773990)*100 # 68.32674 % of MBRNF has trees 
+global(MBRNF_EVH_rast, fun = "notNA") # 9148382
+(9148382/12504670)*100 # 73.15972 % of MBRNF has trees 
 
 # trees > 10 ft area
-global(MBRNF_EVH_filt_rast, fun = "notNA") # 5231674
-(5231674/7773990)*100 # 67.29715 % of MBRNF has trees > 10 ft
+global(MBRNF_EVH_filt_rast, fun = "notNA") # 9068667
+(9068667/12504670)*100 # 72.52224 % of MBRNF has trees > 10 ft
 
 #### slope ----
 # need to use resampled version (above) to get same resolution and extent
-global(slope_resampled, fun = "notNA") # 6282487 cells 
-(6282487/7773990)*100 # 80.81419 % remaining after 24* filter
+global(slope_resampled, fun = "notNA") # 11391032 cells 
+(11391032/12504670)*100 # 91.09422 % remaining after 24* filter
 
 #### road ----
-global(MBRNF_road_filt_rast, fun = "notNA") # 5316596 cells
-# entire MBRNF = 7773990 cells
-(5316596/7773990)*100 # 68.38954 % remaining
+global(MBRNF_road_filt_rast, fun = "notNA") # 7989714 cells
+(7989714/12504670)*100 # 63.89384 % remaining
 
 
 ### combined PFs ----
-# we want to know what % of the MBRNF each category falls into after combining
+# we want to know what % of the MBRNF meets all of the priority factor thresholds, after combining
 
-# value 5, QMD only
-global(MBRNF_combined_rast == 5, fun = "sum", na.rm = TRUE) # 24212 cells
-(24212/7773990)*100 # 0.3114488 % of MBRNF
-
-# value 10, EVH only
-global(MBRNF_combined_rast == 10, fun = "sum", na.rm = TRUE) # 86352 cells
-(86352/7773990)*100 # 1.110781 % of MBRNF
-
-# value 15, QMD + EVH
-global(MBRNF_combined_rast == 15, fun = "sum", na.rm = TRUE) # 176429 cells
-(176429/7773990)*100 # 2.269478 % of MBRNF
-
-# value 100, slope only
-global(MBRNF_combined_rast == 100, fun = "sum", na.rm = TRUE) # 589281 cells
-(589281/7773990)*100 # 7.580162 % of MBRNF
-
-# value 105, slope + QMD
-global(MBRNF_combined_rast == 105, fun = "sum", na.rm = TRUE) # 84525 cells
-(84525/7773990)*100 # 1.08728 % of MBRNF
-
-# value 110, slope + EVH
-global(MBRNF_combined_rast == 110, fun = "sum", na.rm = TRUE) # 391693 cells
-(391693/7773990)*100 # 5.038507 % of MBRNF
-
-# value 115, slope + EVH + QMD
-global(MBRNF_combined_rast == 115, fun = "sum", na.rm = TRUE) # 790573 cells
-(790573/7773990)*100 # 10.16946 % of MBRNF
-
-# value 500, road only
-global(MBRNF_combined_rast == 500, fun = "sum", na.rm = TRUE) # 215441 cells
-(215441/7773990)*100 # 2.771305 % of MBRNF
-
-# value 505, road + QMD
-global(MBRNF_combined_rast == 505, fun = "sum", na.rm = TRUE) # 52812 cells
-(52812/7773990)*100 # 0.6793423 % of MBRNF
-
-# value 510, road + EVH
-global(MBRNF_combined_rast == 510, fun = "sum", na.rm = TRUE) # 169563 cells
-(169563/7773990)*100 # 2.181158 % of MBRNF
-
-# value 515, road + EVH + QMD
-global(MBRNF_combined_rast == 515, fun = "sum", na.rm = TRUE) # 452365 cells
-(452365/7773990)*100 # 5.818955 % of MBRNF
-
-# value 600, road + slope
-global(MBRNF_combined_rast == 600, fun = "sum", na.rm = TRUE) # 1002984 cells
-(1002984/7773990)*100 # 12.90179 % of MBRNF
-
-# value 605, road + slope + QMD
-global(MBRNF_combined_rast == 605, fun = "sum", na.rm = TRUE) # 258732 cells
-(258732/7773990)*100 # 3.328175 % of MBRNF
-
-# value 610, road + slope + EVH
-global(MBRNF_combined_rast == 610, fun = "sum", na.rm = TRUE) # 843644 cells
-(843644/7773990)*100 # 10.85214 % of MBRNF
-
-# value 615, road + slope + QMD + EVH
-global(MBRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2321055 cells
-(2321055/7773990)*100 # 29.85668 % of MBRNF
-
-# value notNA
-global(MBRNF_combined_rast, fun = "notNA") # 7459661 cells
-(7459661/7773990)*100 # 95.95666 % of MBRNF (equals the sum of above %s)
-100-95.95666 # 4.04334 % is NA (QMD < 5in, EVH < 10ft, slope >24, road >0.57)
+# value 615 = road + slope + QMD + EVH
+global(MBRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3535681 cells
+(3535681/12504670)*100 # 28.27488 % of MBRNF
 
 
 ## filter & adjust value ----
@@ -453,17 +387,16 @@ MBRNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(MBRNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
-(2321055/7773990)*100 # 29.85668 % of MBRNF
+global(MBRNF_priority_rast, fun = "notNA") # 3535681 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(MBRNF_priority_rast, transform = FALSE) # 2088949500 m^2
-2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
-# entire MBRNF = 1723619 acres (calculated from MBRNF_vect polygon in Part1A_2)
-(516190.2/1723619)*100 # 29.94805 % of MBRNF (almost same as value=615 above)
+expanse(MBRNF_priority_rast, transform = FALSE) # 3182112900 m^2
+3182112900/4046.86 # 4046.86 m2/acre = 786316.5 acres
+# entire MBRNF = 2772764 acres (calculated from MBRNF_vect polygon in Part1A_2)
+(786316.5/2772764)*100 # 28.35858 % of MBRNF (almost same as value=615 above)
 
 ## viz ----
 plot(MBRNF_priority_rast, col = "goldenrod1")
@@ -479,12 +412,12 @@ MBRNF_priority_rast <- rast("MBRNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(MBRNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 95527 patches
+# there are 179093 patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 95527 geometries 
+# there are 179093 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -496,20 +429,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1429 geoms remain
-(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
-# so ~99 % of patches/polys were < 20 acres (isolated areas)
+# 2234 geoms remain
+(2234/179093)*100 # 1.247397 % of polys remain (are >= 20 acres)
+# so ~98 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1196 geoms
-(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
+# 1891 geoms
+(1891/2234)*100 # 84.64637 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 233 geoms
+# 343 geoms
 # these do need to be divided
 
 
@@ -533,20 +466,20 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2910 geoms
+# 4290 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 MBRNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4106 geoms
+# 6181 geoms
 
 
 ## adjust ----
 # add new ID col & new final area col
-MBRNF_PCUs_1A_vect$PCU_ID <- 1:nrow(MBRNF_PCUs_1A_vect)
+MBRNF_PCUs_1A_vect$PCU_ID <- paste0("MBRNF_PCU_", seq_len(nrow(MBRNF_PCUs_1A_vect)))
 MBRNF_PCUs_1A_vect$area_acres <- expanse(MBRNF_PCUs_1A_vect) * 0.000247105
 
 summary(MBRNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 265.60  
+# area_acres min = 19.33, max = 286.20    
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -555,20 +488,14 @@ MBRNF_PCUs_1A_vect <- MBRNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 MBRNF_PCUs_1A_df <- as.data.frame(MBRNF_PCUs_1A_vect)
 
-sum(MBRNF_PCUs_1A_vect$area_acres) # 422214.1 acres
-sum(small_polys_removed$patch_acres) # 422214.1 acres
+sum(MBRNF_PCUs_1A_vect$area_acres) # 635324.5 acres
+sum(small_polys_removed$patch_acres) # 635324.5 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
-# MBRNF is 1723619 acres 
-(422214.1/1723619)*100 # 24.49579 % of MBRNF are highest priority areas (PCUs)
-
-# for reference, 
-(506182.4/1723619)*100 # 29.36742 % of MBRNF meets PFs (MBRNF_priority_rast values = 1)
-
-(422214.1/506182.4)*100 # 83.41145 % of the areas that meet basic priorities
-# are continuous PCUs > 20 acres
+# MBRNF is 2772764 acres 
+(635324.5/2772764)*100 # 22.91304 % of MBRNF are highest priority areas (PCUs)
 
 
 ## viz ----
