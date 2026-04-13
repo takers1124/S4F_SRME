@@ -33,8 +33,8 @@ expanse(CNF_vect) # 6444515361 m^2
 6444515361/4046.86 # 4046.86 m/acre = 1592473 acres
 
 ## write & read ----
-writeVector(CNF_vect, "CNF_vect.shp")
-CNF_vect <- vect("CNF_vect.shp")
+writeVector(CNF_vect, "./CarsonNF_S4F/.shp/CNF_vect.shp")
+CNF_vect <- vect("./CarsonNF_S4F/.shp/CNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -50,8 +50,8 @@ CNF_QMD_rast <- crop(QMD_CONUS, CNF_vect, mask=TRUE)
 plot(CNF_QMD_rast)
 
 #### write & read ----
-writeRaster(CNF_QMD_rast, "CNF_QMD_rast.tif")
-CNF_QMD_rast <- rast("CNF_QMD_rast.tif")
+writeRaster(CNF_QMD_rast, "./CarsonNF_S4F/.tif/CNF_QMD_rast.tif")
+CNF_QMD_rast <- rast("./CarsonNF_S4F/.tif/CNF_QMD_rast.tif")
 
 global(CNF_QMD_rast, fun = "notNA") # 5641440 cells
 
@@ -71,8 +71,8 @@ plot(CNF_QMD_filt_rast, col = "darkgreen")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(CNF_QMD_filt_rast, "CNF_QMD_filt_rast.tif")
-CNF_QMD_filt_rast <- rast("CNF_QMD_filt_rast.tif")
+writeRaster(CNF_QMD_filt_rast, "./CarsonNF_S4F/.tif/CNF_QMD_filt_rast.tif")
+CNF_QMD_filt_rast <- rast("./CarsonNF_S4F/.tif/CNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -106,8 +106,8 @@ global(CNF_EVH_rast, fun = "notNA") # 5618557
 summary(CNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(CNF_EVH_rast, "CNF_EVH_rast.tif")
-CNF_EVH_rast <- rast("CNF_EVH_rast.tif")
+writeRaster(CNF_EVH_rast, "./CarsonNF_S4F/.tif/CNF_EVH_rast.tif")
+CNF_EVH_rast <- rast("./CarsonNF_S4F/.tif/CNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -123,8 +123,8 @@ plot(CNF_EVH_filt_rast, col = "forestgreen")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(CNF_EVH_filt_rast, "CNF_EVH_filt_rast.tif")
-CNF_EVH_filt_rast <- rast("CNF_EVH_filt_rast.tif")
+writeRaster(CNF_EVH_filt_rast, "./CarsonNF_S4F/.tif/CNF_EVH_filt_rast.tif")
+CNF_EVH_filt_rast <- rast("./CarsonNF_S4F/.tif/CNF_EVH_filt_rast.tif")
 
 
 ## slope ----
@@ -153,16 +153,16 @@ plot(CNF_DEM_rast) # min = 1790.530 , max = 4005.903  (meters)
 plot(is.na(CNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(CNF_DEM_rast, "CNF_DEM_rast.tif")
-CNF_DEM_rast <- rast("CNF_DEM_rast.tif")
+writeRaster(CNF_DEM_rast, "./CarsonNF_S4F/.tif/CNF_DEM_rast.tif")
+CNF_DEM_rast <- rast("./CarsonNF_S4F/.tif/CNF_DEM_rast.tif")
 
 ### calc slope ----
 CNF_slope_rast = terrain(CNF_DEM_rast, v="slope", unit="degrees")
 plot(CNF_slope_rast)
 
 #### write & read ----
-writeRaster(CNF_slope_rast, "CNF_slope_rast.tif")
-CNF_slope_rast <- rast("CNF_slope_rast.tif")
+writeRaster(CNF_slope_rast, "./CarsonNF_S4F/.tif/CNF_slope_rast.tif")
+CNF_slope_rast <- rast("./CarsonNF_S4F/.tif/CNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -175,8 +175,8 @@ plot(CNF_slope_filt_rast, col = "mediumorchid2")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(CNF_slope_filt_rast, "CNF_slope_filt_rast.tif")
-CNF_slope_filt_rast <- rast("CNF_slope_filt_rast.tif")
+writeRaster(CNF_slope_filt_rast, "./CarsonNF_S4F/.tif/CNF_slope_filt_rast.tif")
+CNF_slope_filt_rast <- rast("./CarsonNF_S4F/.tif/CNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -186,16 +186,16 @@ CNF_slope_filt_rast <- rast("CNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+CNF_buffer1km <- buffer(CNF_vect, width = 1000)
 
-# get just roads in the CNF
-USFS_roads_CNF <- terra::intersect(USFS_roads_SRME_projected, CNF_vect)
-nrow(USFS_roads_CNF) # 2401
+# get just roads in the CNF + buffer
+USFS_roads_CNF <- terra::intersect(USFS_roads_SRME, CNF_buffer1km)
+nrow(USFS_roads_CNF) # 2431
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -211,10 +211,10 @@ USFS_roads_CNF <- USFS_roads_CNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
   ))
 
-nrow(USFS_roads_CNF) # 1149
+nrow(USFS_roads_CNF) # 1176
 plot(USFS_roads_CNF)
-(1149/2401)* 100 # = 47.85506 % of FS roads retained
-100 - 47.85506 # = 52.14494 % dropped
+(1176/2431)* 100 # = 48.37515 % of FS roads retained
+100 - 48.37515 # = 51.62485 % dropped
 
 
 #### USGS roads ----
@@ -222,42 +222,39 @@ plot(USFS_roads_CNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the CNF
-USGS_roads_CNF <- terra::intersect(USGS_roads_SRME_proj, CNF_vect)
-nrow(USGS_roads_CNF) # 13965
+USGS_roads_CNF <- terra::intersect(USGS_roads_SRME, CNF_buffer1km)
+nrow(USGS_roads_CNF) # 18299
 plot(USGS_roads_CNF)
 
 
 ### rasterize ----
 #### USFS ----
-CNF_USFS_road_rast <- rasterize(USFS_roads_CNF, CNF_QMD_filt_rast , touches=TRUE)
+CNF_USFS_road_rast <- rasterize(USFS_roads_CNF, CNF_QMD_rast , touches=TRUE)
 plot(CNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(CNF_USFS_road_rast)) # values not 1 are NA
-global(CNF_USFS_road_rast, fun = "notNA") # 141988 cells not NA
+global(CNF_USFS_road_rast, fun = "notNA") # 145254 cells not NA
 
 #### USGS ----
-CNF_USGS_road_rast <- rasterize(USGS_roads_CNF, CNF_QMD_filt_rast , touches=TRUE)
+CNF_USGS_road_rast <- rasterize(USGS_roads_CNF, CNF_QMD_rast , touches=TRUE)
 plot(CNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(CNF_USGS_road_rast)) # values not 1 are NA
-global(CNF_USGS_road_rast, fun = "notNA") # 313105 cells not NA
+global(CNF_USGS_road_rast, fun = "notNA") # 370450 cells not NA
 
 
 ### combine ----
 CNF_road_rast <- cover(CNF_USFS_road_rast, CNF_USGS_road_rast)
 plot(CNF_road_rast)
 plot(is.na(CNF_road_rast))
-global(CNF_road_rast, fun = "notNA") # 323604 cells not NA
+global(CNF_road_rast, fun = "notNA") # 381674 cells not NA
 
 ##### write & read ----
-writeRaster(CNF_road_rast, "CNF_road_rast.tif")
-CNF_road_rast <- rast("CNF_road_rast.tif")
+writeRaster(CNF_road_rast, "./CarsonNF_S4F/.tif/CNF_road_rast.tif")
+CNF_road_rast <- rast("./CarsonNF_S4F/.tif/CNF_road_rast.tif")
 
 
 ### distance ----
@@ -267,13 +264,13 @@ plot(CNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(CNF_road_dist_rast, "CNF_road_dist_rast.tif")
-CNF_road_dist_rast <- rast("CNF_road_dist_rast.tif")
+writeRaster(CNF_road_dist_rast, "./CarsonNF_S4F/.tif/CNF_road_dist_rast.tif")
+CNF_road_dist_rast <- rast("./CarsonNF_S4F/.tif/CNF_road_dist_rast.tif")
 
 
 ### filter ----
 minmax(CNF_road_dist_rast) 
-# min = 0, max = 78217.68 
+# min = 0, max = 77212.12 
 # but the max we want to include is 917.3261 meters (0.57 miles)
 # if > threshold, make NA; else make value = 500
 
@@ -292,8 +289,8 @@ plot(CNF_road_filt_rast, col = "darkorchid2")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(CNF_road_filt_rast, "CNF_road_filt_rast.tif")
-CNF_road_filt_rast <- rast("CNF_road_filt_rast.tif")
+writeRaster(CNF_road_filt_rast, "./CarsonNF_S4F/.tif/CNF_road_filt_rast.tif")
+CNF_road_filt_rast <- rast("./CarsonNF_S4F/.tif/CNF_road_filt_rast.tif")
 
 
 
@@ -359,16 +356,16 @@ global(slope_resampled, fun = "notNA") # 6378993 cells
 (6378993/7180630)*100 # 88.83612 % remaining after 24* filter
 
 #### road ----
-global(CNF_road_filt_rast, fun = "notNA") # 5675161 cells
-(5675161/7180630)*100 # 79.0343 % remaining
+global(CNF_road_filt_rast, fun = "notNA") # 5724497 cells
+(5724497/7180630)*100 # 79.72138 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the CNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(CNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2734478 cells
-(2734478/7180630)*100 # 38.08131 % of CNF
+global(CNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2754257 cells
+(2754257/7180630)*100 # 38.35676 % of CNF
 
 
 ## filter & adjust value ----
@@ -378,18 +375,18 @@ CNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(CNF_priority_rast, fun = "notNA") # 2734478 cells (same as value=615 above)
-(2734478/7180630)*100 # 38.08131 % of CNF
+global(CNF_priority_rast, fun = "notNA") # 2754257 cells (same as value=615 above)
+(2754257/7180630)*100 # 38.35676 % of CNF
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(CNF_priority_rast, transform = FALSE) # 2461030200 m^2
-2461030200/4046.86 # 4046.86 m2/acre = 608133.3 acres
+expanse(CNF_priority_rast, transform = FALSE) # 2478831300 m^2
+2478831300/4046.86 # 4046.86 m2/acre = 612532 acres
 
 # entire CNF = 1592473 acres (calculated from CNF_vect polygon in Part1A_2)
-(608133.3/1592473)*100 # 38.18798 % of CNF (almost same as value=615 above)
+(612532/1592473)*100 # 38.4642 % of CNF (almost same as value=615 above)
 
 
 ## viz ----
@@ -397,8 +394,8 @@ plot(CNF_priority_rast, col = "goldenrod1")
 polys(CNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(CNF_priority_rast, "CNF_priority_rast.tif")
-CNF_priority_rast <- rast("CNF_priority_rast.tif")
+writeRaster(CNF_priority_rast, "./CarsonNF_S4F/.tif/CNF_priority_rast.tif")
+CNF_priority_rast <- rast("./CarsonNF_S4F/.tif/CNF_priority_rast.tif")
 
 
 
@@ -406,12 +403,11 @@ CNF_priority_rast <- rast("CNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(CNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 91498 patches
-
+# there are 92145  patches
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 91498 geometries 
+# there are 92145 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -423,20 +419,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1073 geoms remain
-(1073/134187)*100 # 0.7996304 % of polys remain (are >= 20 acres)
+# 1088 geoms remain
+(1088/134187)*100 # 0.8108088 % of polys remain (are >= 20 acres)
 # so ~99.2 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 917 geoms
-(917/1073)*100 # 85.46132 % of polys >= 20 acres are also <= 200 acres
+# 931 geoms
+(931/1088)*100 # 85.56985 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 156 geoms
+# 157 geoms
 # these do need to be divided
 
 
@@ -460,11 +456,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 3835 geoms
+# 3863 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 CNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4752 geoms
+# 4794 geoms
 
 
 ## adjust ----
@@ -473,7 +469,7 @@ CNF_PCUs_1A_vect$PCU_ID <- paste0("CNF_PCU_", seq_len(nrow(CNF_PCUs_1A_vect)))
 CNF_PCUs_1A_vect$area_acres <- expanse(CNF_PCUs_1A_vect) * 0.000247105
 
 summary(CNF_PCUs_1A_vect)
-# area_acres min = 17.62, max = 342.38    
+# area_acres min = 17.62, max = 347.38    
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -482,14 +478,14 @@ CNF_PCUs_1A_vect <- CNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 CNF_PCUs_1A_df <- as.data.frame(CNF_PCUs_1A_vect)
 
-sum(CNF_PCUs_1A_vect$area_acres) # 530520.2 acres
-sum(small_polys_removed$patch_acres) # 530520.2 acres
+sum(CNF_PCUs_1A_vect$area_acres) # 534371.4 acres
+sum(small_polys_removed$patch_acres) # 534371.4 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # CNF is 1592473 acres 
-(422214.1/1592473)*100 # 26.51311 % of CNF are highest priority areas (PCUs)
+(534371.4/1592473)*100 # 33.55607 % of CNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -498,6 +494,6 @@ polys(CNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(CNF_PCUs_1A_vect, "CNF_PCUs_1A_vect.shp")
-CNF_PCUs_1A_vect <- vect("CNF_PCUs_1A_vect.shp")
+writeVector(CNF_PCUs_1A_vect, "./CarsonNF_S4F/.shp/CNF_PCUs_1A_vect.shp")
+CNF_PCUs_1A_vect <- vect("./CarsonNF_S4F/.shp/CNF_PCUs_1A_vect.shp")
 

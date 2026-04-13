@@ -47,8 +47,8 @@ expanse(MLSNF_vect) # 2198348868 m^2
 2198348868/4046.86 # 4046.86 m/acre = 543223.4 acres
 
 ## write & read ----
-writeVector(MLSNF_vect, "MLSNF_vect.shp")
-MLSNF_vect <- vect("MLSNF_vect.shp")
+writeVector(MLSNF_vect, "./MantiLaSalNF_S4F/.shp/MLSNF_vect.shp")
+MLSNF_vect <- vect("./MantiLaSalNF_S4F/.shp/MLSNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -64,8 +64,8 @@ MLSNF_QMD_rast <- crop(QMD_CONUS, MLSNF_vect, mask=TRUE)
 plot(MLSNF_QMD_rast)
 
 #### write & read ----
-writeRaster(MLSNF_QMD_rast, "MLSNF_QMD_rast.tif")
-MLSNF_QMD_rast <- rast("MLSNF_QMD_rast.tif")
+writeRaster(MLSNF_QMD_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_QMD_rast.tif")
+MLSNF_QMD_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_QMD_rast.tif")
 
 global(MLSNF_QMD_rast, fun = "notNA") # 1975822 cells
 
@@ -85,8 +85,8 @@ plot(MLSNF_QMD_filt_rast, col = "darkgreen")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(MLSNF_QMD_filt_rast, "MLSNF_QMD_filt_rast.tif")
-MLSNF_QMD_filt_rast <- rast("MLSNF_QMD_filt_rast.tif")
+writeRaster(MLSNF_QMD_filt_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_QMD_filt_rast.tif")
+MLSNF_QMD_filt_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -120,8 +120,8 @@ global(MLSNF_EVH_rast, fun = "notNA") # 1930559
 summary(MLSNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(MLSNF_EVH_rast, "MLSNF_EVH_rast.tif")
-MLSNF_EVH_rast <- rast("MLSNF_EVH_rast.tif")
+writeRaster(MLSNF_EVH_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_EVH_rast.tif")
+MLSNF_EVH_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -137,8 +137,8 @@ plot(MLSNF_EVH_filt_rast, col = "forestgreen")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(MLSNF_EVH_filt_rast, "MLSNF_EVH_filt_rast.tif")
-MLSNF_EVH_filt_rast <- rast("MLSNF_EVH_filt_rast.tif")
+writeRaster(MLSNF_EVH_filt_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_EVH_filt_rast.tif")
+MLSNF_EVH_filt_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_EVH_filt_rast.tif")
 
 
 
@@ -167,16 +167,16 @@ plot(MLSNF_DEM_rast) # min = 1228.455 , max = 3871.930  (meters)
 plot(is.na(MLSNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(MLSNF_DEM_rast, "MLSNF_DEM_rast.tif")
-MLSNF_DEM_rast <- rast("MLSNF_DEM_rast.tif")
+writeRaster(MLSNF_DEM_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_DEM_rast.tif")
+MLSNF_DEM_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_DEM_rast.tif")
 
 ### calc slope ----
 MLSNF_slope_rast = terrain(MLSNF_DEM_rast, v="slope", unit="degrees")
 plot(MLSNF_slope_rast)
 
 #### write & read ----
-writeRaster(MLSNF_slope_rast, "MLSNF_slope_rast.tif")
-MLSNF_slope_rast <- rast("MLSNF_slope_rast.tif")
+writeRaster(MLSNF_slope_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_slope_rast.tif")
+MLSNF_slope_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -189,8 +189,8 @@ plot(MLSNF_slope_filt_rast, col = "mediumorchid2")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(MLSNF_slope_filt_rast, "MLSNF_slope_filt_rast.tif")
-MLSNF_slope_filt_rast <- rast("MLSNF_slope_filt_rast.tif")
+writeRaster(MLSNF_slope_filt_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_slope_filt_rast.tif")
+MLSNF_slope_filt_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -200,16 +200,16 @@ MLSNF_slope_filt_rast <- rast("MLSNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+MLSNF_buffer1km <- buffer(MLSNF_vect, width = 1000)
 
-# get just roads in the MLSNF
-USFS_roads_MLSNF <- terra::intersect(USFS_roads_SRME_projected, MLSNF_vect)
-nrow(USFS_roads_MLSNF) # 904
+# get just roads in the MLSNF + buffer
+USFS_roads_MLSNF <- terra::intersect(USFS_roads_SRME, MLSNF_buffer1km)
+nrow(USFS_roads_MLSNF) # 905
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -236,42 +236,39 @@ plot(USFS_roads_MLSNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the MLSNF
-USGS_roads_MLSNF <- terra::intersect(USGS_roads_SRME_proj, MLSNF_vect)
-nrow(USGS_roads_MLSNF) # 2640
+USGS_roads_MLSNF <- terra::intersect(USGS_roads_SRME, MLSNF_vect)
+nrow(USGS_roads_MLSNF) # 2710
 plot(USGS_roads_MLSNF)
 
 
 ### rasterize ----
 #### USFS ----
-MLSNF_USFS_road_rast <- rasterize(USFS_roads_MLSNF, MLSNF_QMD_filt_rast , touches=TRUE)
+MLSNF_USFS_road_rast <- rasterize(USFS_roads_MLSNF, MLSNF_QMD_rast , touches=TRUE)
 plot(MLSNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(MLSNF_USFS_road_rast)) # values not 1 are NA
-global(MLSNF_USFS_road_rast, fun = "notNA") # 53821 cells not NA
+global(MLSNF_USFS_road_rast, fun = "notNA") # 54010 cells not NA
 
 #### USGS ----
-MLSNF_USGS_road_rast <- rasterize(USGS_roads_MLSNF, MLSNF_QMD_filt_rast , touches=TRUE)
+MLSNF_USGS_road_rast <- rasterize(USGS_roads_MLSNF, MLSNF_QMD_rast , touches=TRUE)
 plot(MLSNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(MLSNF_USGS_road_rast)) # values not 1 are NA
-global(MLSNF_USGS_road_rast, fun = "notNA") # 65918 cells not NA
+global(MLSNF_USGS_road_rast, fun = "notNA") # 65923 cells not NA
 
 
 ### combine ----
 MLSNF_road_rast <- cover(MLSNF_USFS_road_rast, MLSNF_USGS_road_rast)
 plot(MLSNF_road_rast)
 plot(is.na(MLSNF_road_rast))
-global(MLSNF_road_rast, fun = "notNA") # 75120 cells not NA
+global(MLSNF_road_rast, fun = "notNA") # 75308 cells not NA
 
 ##### write & read ----
-writeRaster(MLSNF_road_rast, "MLSNF_road_rast.tif")
-MLSNF_road_rast <- rast("MLSNF_road_rast.tif")
+writeRaster(MLSNF_road_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_road_rast.tif")
+MLSNF_road_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_road_rast.tif")
 
 
 ### distance ----
@@ -281,13 +278,13 @@ plot(MLSNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(MLSNF_road_dist_rast, "MLSNF_road_dist_rast.tif")
-MLSNF_road_dist_rast <- rast("MLSNF_road_dist_rast.tif")
+writeRaster(MLSNF_road_dist_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_road_dist_rast.tif")
+MLSNF_road_dist_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_road_dist_rast.tif")
 
 
 ### filter ----
 minmax(MLSNF_road_dist_rast) 
-# min = 0, max = 55664.29 
+# min = 0, max = 55655.2 
 # but the max we want to include is 917.3261 meters (0.57 miles)
 # if > threshold, make NA; else make value = 500
 
@@ -306,8 +303,8 @@ plot(MLSNF_road_filt_rast, col = "darkorchid2")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(MLSNF_road_filt_rast, "MLSNF_road_filt_rast.tif")
-MLSNF_road_filt_rast <- rast("MLSNF_road_filt_rast.tif")
+writeRaster(MLSNF_road_filt_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_road_filt_rast.tif")
+MLSNF_road_filt_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_road_filt_rast.tif")
 
 
 
@@ -373,16 +370,16 @@ global(slope_resampled, fun = "notNA") # 1849350 cells
 (1849350/2445368)*100 # 75.62665 % remaining after 24* filter
 
 #### road ----
-global(MLSNF_road_filt_rast, fun = "notNA") # 1662751 cells
-(1662751/2445368)*100 # 67.99594 % remaining
+global(MLSNF_road_filt_rast, fun = "notNA") # 1662940 cells
+(1662940/2445368)*100 # 68.00367 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the MLSNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(MLSNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 913422 cells
-(913422/2445368)*100 # 37.35315 % of MLSNF
+global(MLSNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 913553 cells
+(913553/2445368)*100 # 37.35851 % of MLSNF
 
 
 ## filter & adjust value ----
@@ -392,24 +389,24 @@ MLSNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(MLSNF_priority_rast, fun = "notNA") # 913422 cells (same as value=615 above)
+global(MLSNF_priority_rast, fun = "notNA") # 913553 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(MLSNF_priority_rast, transform = FALSE) # 822079800 m^2
-822079800/4046.86 # 4046.86 m2/acre = 203140.2 acres
+expanse(MLSNF_priority_rast, transform = FALSE) # 822197700 m^2
+822197700/4046.86 # 4046.86 m2/acre = 203169.3 acres
 # entire MLSNF = 543223.4 acres (calculated from MLSNF_vect polygon in Part1A_2)
-(203140.2/543223.4)*100 # 37.39533 % of MLSNF (almost same as value=615 above)
+(203169.3/543223.4)*100 # 37.39533 % of MLSNF (almost same as value=615 above)
 
 ## viz ----
 plot(MLSNF_priority_rast, col = "goldenrod1")
 polys(MLSNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(MLSNF_priority_rast, "MLSNF_priority_rast.tif")
-MLSNF_priority_rast <- rast("MLSNF_priority_rast.tif")
+writeRaster(MLSNF_priority_rast, "./MantiLaSalNF_S4F/.tif/MLSNF_priority_rast.tif")
+MLSNF_priority_rast <- rast("./MantiLaSalNF_S4F/.tif/MLSNF_priority_rast.tif")
 
 
 
@@ -417,12 +414,12 @@ MLSNF_priority_rast <- rast("MLSNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(MLSNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 21431 patches
+# there are 21432  patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 21431 geometries 
+# there are 21432  geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -493,14 +490,14 @@ MLSNF_PCUs_1A_vect <- MLSNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 MLSNF_PCUs_1A_df <- as.data.frame(MLSNF_PCUs_1A_vect)
 
-sum(MLSNF_PCUs_1A_vect$area_acres) # 185620.3 acres
-sum(small_polys_removed$patch_acres) # 185620.3 acres
+sum(MLSNF_PCUs_1A_vect$area_acres) # 185648.4 acres
+sum(small_polys_removed$patch_acres) # 185648.4 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # MLSNF is 543223.4 acres 
-(185620.3/543223.4)*100 # 34.17016 % of MLSNF are highest priority areas (PCUs)
+(185648.4/543223.4)*100 # 34.17533 % of MLSNF are highest priority areas (PCUs)
 
 
 
@@ -510,7 +507,7 @@ polys(MLSNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(MLSNF_PCUs_1A_vect, "MLSNF_PCUs_1A_vect.shp")
-MLSNF_PCUs_1A_vect <- vect("MLSNF_PCUs_1A_vect.shp")
+writeVector(MLSNF_PCUs_1A_vect, "./MantiLaSalNF_S4F/.shp/MLSNF_PCUs_1A_vect.shp")
+MLSNF_PCUs_1A_vect <- vect("./MantiLaSalNF_S4F/.shp/MLSNF_PCUs_1A_vect.shp")
 
 

@@ -31,9 +31,9 @@ GMUGNF_vect <- project(GMUGNF_vect,"EPSG:5070")
 expanse(GMUGNF_vect) # 12760571788 m^2
 12760571788/4046.86 # 4046.86 m/acre = 3153203 acres
 
-## write & read
-writeVector(GMUGNF_vect, "GMUGNF_vect.shp")
-GMUGNF_vect <- vect("GMUGNF_vect.shp")
+## write & read ----
+writeVector(GMUGNF_vect, "./GMUGNF_S4F/.shp/GMUGNF_vect.shp")
+GMUGNF_vect <- vect("./GMUGNF_S4F/.shp/GMUGNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -49,8 +49,8 @@ GMUGNF_QMD_rast <- crop(QMD_CONUS, GMUGNF_vect, mask=TRUE)
 plot(GMUGNF_QMD_rast)
 
 #### write & read ----
-writeRaster(GMUGNF_QMD_rast, "GMUGNF_QMD_rast.tif")
-GMUGNF_QMD_rast <- rast("GMUGNF_QMD_rast.tif")
+writeRaster(GMUGNF_QMD_rast, "./GMUGNF_S4F/.tif/GMUGNF_QMD_rast.tif")
+GMUGNF_QMD_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_QMD_rast.tif")
 
 global(GMUGNF_QMD_rast, fun = "notNA") # 10070898 cells
 
@@ -70,8 +70,8 @@ plot(GMUGNF_QMD_filt_rast, col = "darkgreen")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(GMUGNF_QMD_filt_rast, "GMUGNF_QMD_filt_rast.tif")
-GMUGNF_QMD_filt_rast <- rast("GMUGNF_QMD_filt_rast.tif")
+writeRaster(GMUGNF_QMD_filt_rast, "./GMUGNF_S4F/.tif/GMUGNF_QMD_filt_rast.tif")
+GMUGNF_QMD_filt_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -105,8 +105,8 @@ global(GMUGNF_EVH_rast, fun = "notNA") # 10071238
 summary(GMUGNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(GMUGNF_EVH_rast, "GMUGNF_EVH_rast.tif")
-GMUGNF_EVH_rast <- rast("GMUGNF_EVH_rast.tif")
+writeRaster(GMUGNF_EVH_rast, "./GMUGNF_S4F/.tif/GMUGNF_EVH_rast.tif")
+GMUGNF_EVH_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -122,8 +122,8 @@ plot(GMUGNF_EVH_filt_rast, col = "forestgreen")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(GMUGNF_EVH_filt_rast, "GMUGNF_EVH_filt_rast.tif")
-GMUGNF_EVH_filt_rast <- rast("GMUGNF_EVH_filt_rast.tif")
+writeRaster(GMUGNF_EVH_filt_rast, "./GMUGNF_S4F/.tif/GMUGNF_EVH_filt_rast.tif")
+GMUGNF_EVH_filt_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_EVH_filt_rast.tif")
 
 
 ## slope ----
@@ -160,16 +160,16 @@ plot(GMUGNF_DEM_rast) # min = 1442.115 , max = 4354.024  (meters)
 plot(is.na(GMUGNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(GMUGNF_DEM_rast, "GMUGNF_DEM_rast.tif")
-GMUGNF_DEM_rast <- rast("GMUGNF_DEM_rast.tif")
+writeRaster(GMUGNF_DEM_rast, "./GMUGNF_S4F/.tif/GMUGNF_DEM_rast.tif")
+GMUGNF_DEM_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_DEM_rast.tif")
 
 ### calc slope ----
 GMUGNF_slope_rast = terrain(GMUGNF_DEM_rast, v="slope", unit="degrees")
 plot(GMUGNF_slope_rast)
 
 #### write & read ----
-writeRaster(GMUGNF_slope_rast, "GMUGNF_slope_rast.tif")
-GMUGNF_slope_rast <- rast("GMUGNF_slope_rast.tif")
+writeRaster(GMUGNF_slope_rast, "./GMUGNF_S4F/.tif/GMUGNF_slope_rast.tif")
+GMUGNF_slope_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -182,8 +182,8 @@ plot(GMUGNF_slope_filt_rast, col = "mediumorchid2")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(GMUGNF_slope_filt_rast, "GMUGNF_slope_filt_rast.tif")
-GMUGNF_slope_filt_rast <- rast("GMUGNF_slope_filt_rast.tif")
+writeRaster(GMUGNF_slope_filt_rast, "./GMUGNF_S4F/.tif/GMUGNF_slope_filt_rast.tif")
+GMUGNF_slope_filt_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -193,16 +193,16 @@ GMUGNF_slope_filt_rast <- rast("GMUGNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+GMUGNF_buffer1km <- buffer(GMUGNF_vect, width = 1000)
 
-# get just roads in the GMUGNF
-USFS_roads_GMUGNF <- terra::intersect(USFS_roads_SRME_projected, GMUGNF_vect)
-nrow(USFS_roads_GMUGNF) # 2240
+# get just roads in the GMUGNF + buffer
+USFS_roads_GMUGNF <- terra::intersect(USFS_roads_SRME, GMUGNF_buffer1km)
+nrow(USFS_roads_GMUGNF) # 2352
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -218,10 +218,10 @@ USFS_roads_GMUGNF <- USFS_roads_GMUGNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
   ))
 
-nrow(USFS_roads_GMUGNF) # 2076
+nrow(USFS_roads_GMUGNF) # 2147
 plot(USFS_roads_GMUGNF)
-(2076/2240)* 100 # = 92.67857 % of FS roads retained
-100 - 92.67857 # = 7.32143 % dropped
+(2147/2352)* 100 # = 91.28401 % of FS roads retained
+100 - 91.28401 # = 8.71599 % dropped
 
 
 #### USGS roads ----
@@ -229,42 +229,39 @@ plot(USFS_roads_GMUGNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the GMUGNF
-USGS_roads_GMUGNF <- terra::intersect(USGS_roads_SRME_proj, GMUGNF_vect)
-nrow(USGS_roads_GMUGNF) # 14748
+USGS_roads_GMUGNF <- terra::intersect(USGS_roads_SRME, GMUGNF_buffer1km)
+nrow(USGS_roads_GMUGNF) # 20776
 plot(USGS_roads_GMUGNF)
 
 
 ### rasterize ----
 #### USFS ----
-GMUGNF_USFS_road_rast <- rasterize(USFS_roads_GMUGNF, GMUGNF_QMD_filt_rast , touches=TRUE)
+GMUGNF_USFS_road_rast <- rasterize(USFS_roads_GMUGNF, GMUGNF_QMD_rast , touches=TRUE)
 plot(GMUGNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(GMUGNF_USFS_road_rast)) # values not 1 are NA
-global(GMUGNF_USFS_road_rast, fun = "notNA") # 209188 cells not NA
+global(GMUGNF_USFS_road_rast, fun = "notNA") # 217390 cells not NA
 
 #### USGS ----
-GMUGNF_USGS_road_rast <- rasterize(USGS_roads_GMUGNF, GMUGNF_QMD_filt_rast , touches=TRUE)
+GMUGNF_USGS_road_rast <- rasterize(USGS_roads_GMUGNF, GMUGNF_QMD_rast , touches=TRUE)
 plot(GMUGNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(GMUGNF_USGS_road_rast)) # values not 1 are NA
-global(GMUGNF_USGS_road_rast, fun = "notNA") # 329005 cells not NA
+global(GMUGNF_USGS_road_rast, fun = "notNA") # 421561 cells not NA
 
 
 ### combine ----
 GMUGNF_road_rast <- cover(GMUGNF_USFS_road_rast, GMUGNF_USGS_road_rast)
 plot(GMUGNF_road_rast)
 plot(is.na(GMUGNF_road_rast))
-global(GMUGNF_road_rast, fun = "notNA") # 354649 cells not NA
+global(GMUGNF_road_rast, fun = "notNA") # 448455 cells not NA
 
 ##### write & read ----
-writeRaster(GMUGNF_road_rast, "GMUGNF_road_rast.tif")
-GMUGNF_road_rast <- rast("GMUGNF_road_rast.tif")
+writeRaster(GMUGNF_road_rast, "./GMUGNF_S4F/.tif/GMUGNF_road_rast.tif")
+GMUGNF_road_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_road_rast.tif")
 
 
 ### distance ----
@@ -274,8 +271,8 @@ plot(GMUGNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(GMUGNF_road_dist_rast, "GMUGNF_road_dist_rast.tif")
-GMUGNF_road_dist_rast <- rast("GMUGNF_road_dist_rast.tif")
+writeRaster(GMUGNF_road_dist_rast, "./GMUGNF_S4F/.tif/GMUGNF_road_dist_rast.tif")
+GMUGNF_road_dist_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_road_dist_rast.tif")
 
 
 ### filter ----
@@ -299,8 +296,8 @@ plot(GMUGNF_road_filt_rast, col = "darkorchid2")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(GMUGNF_road_filt_rast, "GMUGNF_road_filt_rast.tif")
-GMUGNF_road_filt_rast <- rast("GMUGNF_road_filt_rast.tif")
+writeRaster(GMUGNF_road_filt_rast, "./GMUGNF_S4F/.tif/GMUGNF_road_filt_rast.tif")
+GMUGNF_road_filt_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_road_filt_rast.tif")
 
 
 
@@ -366,16 +363,16 @@ global(slope_resampled, fun = "notNA") # 11223232 cells
 (11223232/14220592)*100 # 78.9224 % remaining after 24* filter
 
 #### road ----
-global(GMUGNF_road_filt_rast, fun = "notNA") # 8129888 cells
-(8129888/14220592)*100 # 57.16983 % remaining
+global(GMUGNF_road_filt_rast, fun = "notNA") # 8293006 cells
+(8293006/14220592)*100 # 58.31688 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the GMUGNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(GMUGNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3732527 cells
-(3732527/14220592)*100 # 26.24734 % of GMUGNF
+global(GMUGNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3798803 cells
+(3798803/14220592)*100 # 26.7134 % of GMUGNF
 
 
 ## filter & adjust value ----
@@ -385,18 +382,18 @@ GMUGNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(GMUGNF_priority_rast, fun = "notNA") # 3732527 cells (same as value=615 above)
-(3732527/14220592)*100 # 26.24734 % of GMUGNF
+global(GMUGNF_priority_rast, fun = "notNA") # 3798803 cells (same as value=615 above)
+(3798803/14220592)*100 # 26.7134 % of GMUGNF
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(GMUGNF_priority_rast, transform = FALSE) # 3359274300 m^2
-3359274300/4046.86 # 4046.86 m2/acre = 830094 acres
+expanse(GMUGNF_priority_rast, transform = FALSE) # 3418922700 m^2
+3418922700/4046.86 # 4046.86 m2/acre = 844833.5 acres
 
 # entire GMUGNF = 3153203 acres (calculated from GMUGNF_vect polygon in Part1A_2)
-(830094/3153203)*100 # 26.32542 % of GMUGNF (almost same as value=615 above)
+(844833.5/3153203)*100 # 26.79287 % of GMUGNF (almost same as value=615 above)
 
 
 ## viz ----
@@ -404,8 +401,8 @@ plot(GMUGNF_priority_rast, col = "goldenrod1")
 polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(GMUGNF_priority_rast, "GMUGNF_priority_rast.tif")
-GMUGNF_priority_rast <- rast("GMUGNF_priority_rast.tif")
+writeRaster(GMUGNF_priority_rast, "./GMUGNF_S4F/.tif/GMUGNF_priority_rast.tif")
+GMUGNF_priority_rast <- rast("./GMUGNF_S4F/.tif/GMUGNF_priority_rast.tif")
 
 
 
@@ -413,12 +410,12 @@ GMUGNF_priority_rast <- rast("GMUGNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(GMUGNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 145492  patches
+# there are 148583   patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 145492 geometries 
+# there are 148583 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -430,20 +427,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 2018 geoms remain
-(2018/145492)*100 # 1.387018 % of polys remain (are >= 20 acres)
+# 2077 geoms remain
+(2077/145492)*100 # 1.42757 % of polys remain (are >= 20 acres)
 # so ~98.6 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1630 geoms
-(1630/2018)*100 # 80.77304 % of polys >= 20 acres are also <= 200 acres
+# 1672 geoms
+(1672/2077)*100 # 80.50072 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 388 geoms
+# 405 geoms
 # these do need to be divided
 
 
@@ -467,11 +464,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 4948 geoms
+# 5028 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 GMUGNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 6578 geoms
+# 6700 geoms
 
 
 ## adjust ----
@@ -480,7 +477,7 @@ GMUGNF_PCUs_1A_vect$PCU_ID <- paste0("GMUGNF_PCU_", seq_len(nrow(GMUGNF_PCUs_1A_
 GMUGNF_PCUs_1A_vect$area_acres <- expanse(GMUGNF_PCUs_1A_vect) * 0.000247105
 
 summary(GMUGNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 329.77    
+# area_acres min = 20.02, max = 382.32      
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -489,14 +486,14 @@ GMUGNF_PCUs_1A_vect <- GMUGNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 GMUGNF_PCUs_1A_df <- as.data.frame(GMUGNF_PCUs_1A_vect)
 
-sum(GMUGNF_PCUs_1A_vect$area_acres) # 709148.9 acres
-sum(small_polys_removed$patch_acres) # 709148.9 acres
+sum(GMUGNF_PCUs_1A_vect$area_acres) # 721009.5 acres
+sum(small_polys_removed$patch_acres) # 721009.5 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # GMUGNF is 3153203 acres 
-(709148.9/3153203)*100 # 22.4898 % of GMUGNF are highest priority areas (PCUs)
+(721009.5/3153203)*100 # 22.4898 % of GMUGNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -505,8 +502,8 @@ polys(GMUGNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(GMUGNF_PCUs_1A_vect, "GMUGNF_PCUs_1A_vect.shp")
-GMUGNF_PCUs_1A_vect <- vect("GMUGNF_PCUs_1A_vect.shp")
+writeVector(GMUGNF_PCUs_1A_vect, "./GMUGNF_S4F/.shp/GMUGNF_PCUs_1A_vect.shp")
+GMUGNF_PCUs_1A_vect <- vect("./GMUGNF_S4F/.shp/GMUGNF_PCUs_1A_vect.shp")
 
 
 

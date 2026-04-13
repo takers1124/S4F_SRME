@@ -33,8 +33,8 @@ expanse(ARNF_vect) # 6975245280 m^2
 6975245280/4046.86 # 4046.86 m/acre = 1723619 acres
 
 ## write & read ----
-writeVector(ARNF_vect, "ARNF_vect.shp")
-ARNF_vect <- vect("ARNF_vect.shp")
+writeVector(ARNF_vect, "./ArapahoRooseveltNF_S4F/.shp/ARNF_vect.shp")
+ARNF_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/ARNF_vect.shp")
 
 
 
@@ -51,8 +51,8 @@ ARNF_QMD_rast <- crop(QMD_CONUS, ARNF_vect, mask=TRUE)
 plot(ARNF_QMD_rast)
 
 #### write & read ----
-writeRaster(ARNF_QMD_rast, "ARNF_QMD_rast.tif")
-ARNF_QMD_rast <- rast("ARNF_QMD_rast.tif")
+writeRaster(ARNF_QMD_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_QMD_rast.tif")
+ARNF_QMD_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_QMD_rast.tif")
 
 global(ARNF_QMD_rast, fun = "notNA") # 5697616 cells
 
@@ -72,8 +72,8 @@ plot(ARNF_QMD_filt_rast, col = "darkgreen")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(ARNF_QMD_filt_rast, "ARNF_QMD_filt_rast.tif")
-ARNF_QMD_filt_rast <- rast("ARNF_QMD_filt_rast.tif")
+writeRaster(ARNF_QMD_filt_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_QMD_filt_rast.tif")
+ARNF_QMD_filt_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -107,8 +107,8 @@ global(ARNF_EVH_rast, fun = "notNA") # 5311714
 summary(ARNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(ARNF_EVH_rast, "ARNF_EVH_rast.tif")
-ARNF_EVH_rast <- rast("ARNF_EVH_rast.tif")
+writeRaster(ARNF_EVH_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_EVH_rast.tif")
+ARNF_EVH_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -124,8 +124,8 @@ plot(ARNF_EVH_filt_rast, col = "forestgreen")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(ARNF_EVH_filt_rast, "ARNF_EVH_filt_rast.tif")
-ARNF_EVH_filt_rast <- rast("ARNF_EVH_filt_rast.tif")
+writeRaster(ARNF_EVH_filt_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_EVH_filt_rast.tif")
+ARNF_EVH_filt_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_EVH_filt_rast.tif")
 
 
 
@@ -155,16 +155,16 @@ plot(ARNF_DEM_rast) # min = 1514.981 , max = 4343.173  (meters)
 plot(is.na(ARNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(ARNF_DEM_rast, "ARNF_DEM_rast.tif")
-ARNF_DEM_rast <- rast("ARNF_DEM_rast.tif")
+writeRaster(ARNF_DEM_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_DEM_rast.tif")
+ARNF_DEM_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_DEM_rast.tif")
 
 ### calc slope ----
 ARNF_slope_rast = terrain(ARNF_DEM_rast, v="slope", unit="degrees")
 plot(ARNF_slope_rast)
 
 #### write & read ----
-writeRaster(ARNF_slope_rast, "ARNF_slope_rast.tif")
-ARNF_slope_rast <- rast("ARNF_slope_rast.tif")
+writeRaster(ARNF_slope_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_slope_rast.tif")
+ARNF_slope_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -177,8 +177,8 @@ plot(ARNF_slope_filt_rast, col = "mediumorchid2")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(ARNF_slope_filt_rast, "ARNF_slope_filt_rast.tif")
-ARNF_slope_filt_rast <- rast("ARNF_slope_filt_rast.tif")
+writeRaster(ARNF_slope_filt_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_slope_filt_rast.tif")
+ARNF_slope_filt_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_slope_filt_rast.tif")
 
 
 
@@ -189,16 +189,16 @@ ARNF_slope_filt_rast <- rast("ARNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+ARNF_buffer1km <- buffer(ARNF_vect, width = 1000)
 
-# get just roads in the ARNF
-USFS_roads_ARNF <- terra::intersect(USFS_roads_SRME_projected, ARNF_vect)
-nrow(USFS_roads_ARNF) # 2825
+# get just roads in the ARNF + buffer
+USFS_roads_ARNF <- terra::intersect(USFS_roads_SRME, ARNF_buffer1km)
+nrow(USFS_roads_ARNF) # 2865
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -214,10 +214,10 @@ USFS_roads_ARNF <- USFS_roads_ARNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
     ))
 
-nrow(USFS_roads_ARNF) # 2399
+nrow(USFS_roads_ARNF) # 2430
 plot(USFS_roads_ARNF)
-(2399/2825)* 100 # = 84.92035 % of FS roads retained
-100 - 84.92035 # = 15.07965 % dropped
+(2430/2865)* 100 # = 84.81675 % of FS roads retained
+100 - 84.81675 # = 15.18325 % dropped
 
 
 #### USGS roads ----
@@ -225,16 +225,13 @@ plot(USFS_roads_ARNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the ARNF
-USGS_roads_ARNF <- terra::intersect(USGS_roads_SRME_proj, ARNF_vect)
-nrow(USGS_roads_ARNF) # 19423
+USGS_roads_ARNF <- terra::intersect(USGS_roads_SRME, ARNF_buffer1km)
+nrow(USGS_roads_ARNF) # 26289
 plot(USGS_roads_ARNF)
 
 
@@ -243,24 +240,25 @@ plot(USGS_roads_ARNF)
 ARNF_USFS_road_rast <- rasterize(USFS_roads_ARNF, ARNF_QMD_rast , touches=TRUE)
 plot(ARNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(ARNF_USFS_road_rast)) # values not 1 are NA
-global(ARNF_USFS_road_rast, fun = "notNA") # 120022 cells not NA
+global(ARNF_USFS_road_rast, fun = "notNA") # 123363 cells not NA
 
 #### USGS ----
 ARNF_USGS_road_rast <- rasterize(USGS_roads_ARNF, ARNF_QMD_rast , touches=TRUE)
 plot(ARNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(ARNF_USGS_road_rast)) # values not 1 are NA
-global(ARNF_USGS_road_rast, fun = "notNA") # 282401 cells not NA
+global(ARNF_USGS_road_rast, fun = "notNA") # 354519 cells not NA
 
 
 ### combine ----
 ARNF_road_rast <- cover(ARNF_USFS_road_rast, ARNF_USGS_road_rast)
 plot(ARNF_road_rast)
 plot(is.na(ARNF_road_rast))
-global(ARNF_road_rast, fun = "notNA") # 295373 cells not NA
+global(ARNF_road_rast, fun = "notNA") # 368472 cells not NA
+
 
 ##### write & read ----
-writeRaster(ARNF_road_rast, "ARNF_road_rast.tif")
-ARNF_road_rast <- rast("ARNF_road_rast.tif")
+writeRaster(ARNF_road_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_road_rast.tif")
+ARNF_road_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_road_rast.tif")
 
 
 ### distance ----
@@ -270,8 +268,8 @@ plot(ARNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(ARNF_road_dist_rast, "ARNF_road_dist_rast.tif")
-ARNF_road_dist_rast <- rast("ARNF_road_dist_rast.tif")
+writeRaster(ARNF_road_dist_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_road_dist_rast.tif")
+ARNF_road_dist_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_road_dist_rast.tif")
 
 
 ### filter ----
@@ -295,8 +293,8 @@ plot(ARNF_road_filt_rast, col = "darkorchid2")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(ARNF_road_filt_rast, "ARNF_road_filt_rast.tif")
-ARNF_road_filt_rast <- rast("ARNF_road_filt_rast.tif")
+writeRaster(ARNF_road_filt_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_road_filt_rast.tif")
+ARNF_road_filt_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_road_filt_rast.tif")
 
 
 
@@ -366,9 +364,9 @@ global(slope_resampled, fun = "notNA") # 6282487 cells
 (6282487/7773990)*100 # 80.81419 % remaining after 24* filter
 
 #### road ----
-global(ARNF_road_filt_rast, fun = "notNA") # 5316596 cells
+global(ARNF_road_filt_rast, fun = "notNA") # 5376134 cells
 # entire ARNF = 7773990 cells
-(5316596/7773990)*100 # 68.38954 % remaining
+(5376134/7773990)*100 # 69.1554 % remaining
 
 
 ### combined PFs ----
@@ -447,25 +445,25 @@ ARNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(ARNF_priority_rast, fun = "notNA") # 2321055 cells (same as value=615 above)
-(2321055/7773990)*100 # 29.85668 % of ARNF
+global(ARNF_priority_rast, fun = "notNA") # 2344528 cells (same as value=615 above)
+(2344528/7773990)*100 # 30.15862 % of ARNF
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(ARNF_priority_rast, transform = FALSE) # 2088949500 m^2
-2088949500/4046.86 # 4046.86 m2/acre = 516190.2 acres
+expanse(ARNF_priority_rast, transform = FALSE) # 2110075200 m^2
+2110075200/4046.86 # 4046.86 m2/acre = 521410.5 acres
 # entire ARNF = 1723619 acres (calculated from ARNF_vect polygon in Part1A_2)
-(516190.2/1723619)*100 # 29.94805 % of ARNF (almost same as value=615 above)
+(521410.5/1723619)*100 # 30.25091 % of ARNF (almost same as value=615 above)
 
 ## viz ----
 plot(ARNF_priority_rast, col = "goldenrod1")
 polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(ARNF_priority_rast, "ARNF_priority_rast.tif")
-ARNF_priority_rast <- rast("ARNF_priority_rast.tif")
+writeRaster(ARNF_priority_rast, "./ArapahoRooseveltNF_S4F/.tif/ARNF_priority_rast.tif")
+ARNF_priority_rast <- rast("./ArapahoRooseveltNF_S4F/.tif/ARNF_priority_rast.tif")
 
 
 
@@ -473,12 +471,12 @@ ARNF_priority_rast <- rast("ARNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(ARNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 95527 patches
+# there are 96600  patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 95527 geometries 
+# there are 96600 geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -490,20 +488,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1429 geoms remain
-(1429/134187)*100 # 1.064932 % of polys remain (are >= 20 acres)
+# 1456 geoms remain
+(1456/134187)*100 # 1.085053 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1196 geoms
-(1196/1414)*100 # 84.58274 % of polys >= 20 acres are also <= 200 acres
+# 1220 geoms
+(1220/1456)*100 # 83.79121 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 233 geoms
+# 236 geoms
 # these do need to be divided
 
 
@@ -527,11 +525,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2910 geoms
+# 2928 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 ARNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4106 geoms
+# 4148 geoms
 
 
 ## adjust ----
@@ -540,7 +538,7 @@ ARNF_PCUs_1A_vect$PCU_ID <- paste0("ARNF_PCU_", seq_len(nrow(ARNF_PCUs_1A_vect))
 ARNF_PCUs_1A_vect$area_acres <- expanse(ARNF_PCUs_1A_vect) * 0.000247105
 
 summary(ARNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 265.60  
+# area_acres min = 20.02, max = 267.72    
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -549,14 +547,14 @@ ARNF_PCUs_1A_vect <- ARNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 ARNF_PCUs_1A_df <- as.data.frame(ARNF_PCUs_1A_vect)
 
-sum(ARNF_PCUs_1A_vect$area_acres) # 430773.6 acres
-sum(small_polys_removed$patch_acres) # 430773.6 acres
+sum(ARNF_PCUs_1A_vect$area_acres) # 434847.4 acres
+sum(small_polys_removed$patch_acres) # 434847.4 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # ARNF is 1723619 acres 
-(430773.6/1723619)*100 # 24.49579 % of ARNF are highest priority areas (PCUs)
+(434847.4/1723619)*100 # 25.22874 % of ARNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -565,7 +563,166 @@ polys(ARNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(ARNF_PCUs_1A_vect, "ARNF_PCUs_1A_vect.shp")
-ARNF_PCUs_1A_vect <- vect("ARNF_PCUs_1A_vect.shp")
+writeVector(ARNF_PCUs_1A_vect, "./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_1A_vect.shp")
+ARNF_PCUs_1A_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_1A_vect.shp")
 
 
+
+# ** rerun ----
+## select Lady Moon ----
+# for the case study, we select a PCU that we will use for FWD climate matching in part 2
+# the PCU closest to the Lady Moon trail head has PCU_ID = 212
+
+PCU_LM_vect <- ARP_PCUs_1A_vect %>% 
+  filter(PCU_ID == 204)
+plot(PCU_LM_vect)
+
+
+
+# (6) make PPUs ----
+# for the case study, we create potential planting units (PPUs) that we will use for REV climate matching in part 2
+# PPUs come from the FACTS needs polys that are within the Cameron Peak (CP) fire boundary
+# last downloaded on August 3rd, 2025
+# we divided the FACTS needs into small (50-200 acre) polygons
+# then assigned a 500 ft elevation band (EB) to each
+# and we are just using a subset of the units in the 9000-9500 ft EB for the case study
+# we will extract the future climate from these needs in Part 2
+
+## import ----
+needs_all <- vect("S_USA.Actv_SilvReforest_Needs.shp")
+names(needs_all)
+unique(needs_all$ACTIVITY_C)
+
+## filter ----
+desired_cols <- c("REGION_COD", "ADMIN_FORE", "DISTRICT_C", "FACTS_ID", "ACTIVITY_C")
+# the column ACTIVITY_C has the activity code
+# if we were looking for all planting needs, would use code 4431
+desired_ids <- c("RA20CPPLNT")
+# for our case study, we just want this single polygon with FACTS_ID = RA20CPPLNT
+# this is essentially all the Cameron Peak (CP) fire needs in 1 poly
+
+CP_big_need_poly <- needs_all %>%
+  select(all_of(desired_cols)) %>% 
+  filter(FACTS_ID %in% desired_ids) 
+
+## project ---- 
+CP_big_need_poly <- project(CP_big_need_poly, "EPSG:5070")
+plot(CP_big_need_poly)
+# has 1 geometry (one large multipart polygon)
+
+## disaggregate ----
+CP_disagg_need_poly <- disagg(CP_big_need_poly)
+# has 362 geometries
+
+# add an ID col
+CP_disagg_need_poly$disagg_ID <- 1:nrow(CP_disagg_need_poly)
+
+## separate sizes ----
+# calc area (default in m^2) & convert to acres
+CP_disagg_need_poly$area_disagg <- expanse(CP_disagg_need_poly) * 0.000247105
+
+# filt out small poys (< 20 acres)
+small_polys_removed <- CP_disagg_need_poly[CP_disagg_need_poly$area_disagg >= 20, ]
+# 112 geoms remain
+(112/362)*100 # 30.93923 % of polys remain (are >= 20 acres)
+
+# separate mid-sized polys (20-200 acres)
+mid_polys <- small_polys_removed[small_polys_removed$area_disagg <= 200, ]
+# 85 geoms
+(85/362)*100 # 23.48066 % of polys >= 20 acres are also <= 200 acres
+# these don't need to be divided
+
+# separate large polys ( > 200 acres)
+large_polys <- small_polys_removed[small_polys_removed$area_disagg > 200, ]
+# 27 geoms
+# these do need to be divided
+
+## divide ----
+# calculate divisions needed for each large poly, ensuring at least 2 parts for large polys
+num_all_parts <- pmax(2, round(large_polys$area_disagg / 125))
+
+# use lapply to iterate and divide
+divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
+  poly <- large_polys[i, ]
+  # set a seed to ensure reproducibility for the division process
+  set.seed(i)
+  # divide by the pre-determined number of parts for that particular poly
+  divided_poly <- divide(poly, n = num_all_parts[i])
+  # store the original ID and re-calculate the new areas
+  divided_poly$disagg_ID <- poly$disagg_ID
+  divided_poly$area_divided <- expanse(divided_poly) * 0.000247105
+  
+  return(divided_poly)
+})
+
+# combine all divided polys into a single SpatVector
+divided_polys_vect <- do.call(rbind, divided_polys_list)
+# 349 geoms
+
+# combine the mid-sized polys with the newly divided large polys
+CP_PPUs_vect <- rbind(mid_polys, divided_polys_vect)
+# 434 geoms
+
+## adjust ----
+# add new ID col & new final area col
+CP_PPUs_vect$PPU_ID <- 1:nrow(CP_PPUs_vect)
+CP_PPUs_vect$area_acres <- expanse(CP_PPUs_vect) * 0.000247105
+
+summary(CP_PPUs_vect$area_acres)
+# min = 20.68, max = 203.97
+sum(CP_PPUs_vect$area_acres) # 49151.23 acres
+sum(small_polys_removed$area_disagg) # 49151.23 acres
+# bc these are =, we know the divide function worked (retained all area)
+
+# select only new ID and area
+CP_PPUs_vect <- CP_PPUs_vect[, c("PPU_ID", "area_acres")]
+plot(CP_PPUs_vect)
+
+## add Elv ----
+# using the DEM created in part 1A_3b
+ARP_DEM_rast <- rast("ARP_DEM_rast.tif")
+
+# the DEM is in meters --> convert m to ft
+meters_to_feet_factor <- 3.28084
+ARP_DEM_ft <- ARP_DEM_rast * meters_to_feet_factor 
+summary(ARP_DEM_ft) # min = 5374, max = 14030   
+
+# extract median
+Elv_med_df <- extract(ARP_DEM_ft, CP_PPUs_vect, fun=median)
+str(Elv_med_df)
+# rename col
+Elv_med_df <- Elv_med_df %>% 
+  rename(Elv_med_ft = USGS_1_n41w106_20230314) %>% 
+  mutate(PPU_ID = CP_PPUs_vect$PPU_ID) %>% 
+  select(-1)
+
+# add to spatvector
+CP_PPUs_vect <- CP_PPUs_vect %>% 
+  left_join(Elv_med_df, by = "PPU_ID")
+
+### write & read ----
+writeVector(CP_PPUs_vect, "./ArapahoRooseveltNF_S4F/.shp/CP_PPUs_vect.shp")
+CP_PPUs_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/CP_PPUs_vect.shp")
+
+
+## filter ----
+# for the case study, we are only going to use the planting needs (PPUs)
+# that are within the 9000 - 9500 ft EB
+CP_PPU_9000_9500_vect <- CP_PPUs_vect %>% 
+  filter(Elv_med_ft >= 9000, Elv_med_ft <= 9500)
+# 86 geoms
+# too many for the case study - pick a subset of spatially close polys
+# using Arc to visualize and choose (this is subjective)
+
+CaseStudy_PPUs <- c("223", "225", "232", "235", "239", "281", "282", "283", "286", "287", "288", # just 11
+                    "7", "14", "15", "356", "357", "359", "401") # 18
+
+CP_PPUs_CaseStudy_vect <- CP_PPUs_vect %>% 
+  filter(PPU_ID %in% CaseStudy_PPUs)
+# 18 geoms
+
+sum(CP_PPUs_CaseStudy_vect$area_acres) # 2272.514 acres
+
+### write & read ----
+writeVector(CP_PPUs_CaseStudy_vect, "./ArapahoRooseveltNF_S4F/.shp/CP_PPUs_CaseStudy_vect.shp")
+CP_PPUs_CaseStudy_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/CP_PPUs_CaseStudy_vect.shp")
