@@ -33,8 +33,8 @@ expanse(MBRNF_vect) # 11220986892 m^2
 11220986892/4046.86 # 4046.86 m/acre = 2772764 acres
 
 ## write & read ----
-writeVector(MBRNF_vect, "MBRNF_vect.shp")
-MBRNF_vect <- vect("MBRNF_vect.shp")
+writeVector(MBRNF_vect, "./MedBowRouttNF_S4F/.shp/MBRNF_vect.shp")
+MBRNF_vect <- vect("./MedBowRouttNF_S4F/.shp/MBRNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -50,8 +50,8 @@ MBRNF_QMD_rast <- crop(QMD_CONUS, MBRNF_vect, mask=TRUE)
 plot(MBRNF_QMD_rast)
 
 #### write & read ----
-writeRaster(MBRNF_QMD_rast, "MBRNF_QMD_rast.tif")
-MBRNF_QMD_rast <- rast("MBRNF_QMD_rast.tif")
+writeRaster(MBRNF_QMD_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_QMD_rast.tif")
+MBRNF_QMD_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_QMD_rast.tif")
 
 global(MBRNF_QMD_rast, fun = "notNA") # 9678364 cells
 
@@ -71,8 +71,8 @@ plot(MBRNF_QMD_filt_rast, col = "darkgreen")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(MBRNF_QMD_filt_rast, "MBRNF_QMD_filt_rast.tif")
-MBRNF_QMD_filt_rast <- rast("MBRNF_QMD_filt_rast.tif")
+writeRaster(MBRNF_QMD_filt_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_QMD_filt_rast.tif")
+MBRNF_QMD_filt_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -106,8 +106,8 @@ global(MBRNF_EVH_rast, fun = "notNA") # 9148382
 summary(MBRNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(MBRNF_EVH_rast, "MBRNF_EVH_rast.tif")
-MBRNF_EVH_rast <- rast("MBRNF_EVH_rast.tif")
+writeRaster(MBRNF_EVH_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_EVH_rast.tif")
+MBRNF_EVH_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -123,8 +123,8 @@ plot(MBRNF_EVH_filt_rast, col = "forestgreen")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(MBRNF_EVH_filt_rast, "MBRNF_EVH_filt_rast.tif")
-MBRNF_EVH_filt_rast <- rast("MBRNF_EVH_filt_rast.tif")
+writeRaster(MBRNF_EVH_filt_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_EVH_filt_rast.tif")
+MBRNF_EVH_filt_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_EVH_filt_rast.tif")
 
 
 ## slope ----
@@ -162,16 +162,16 @@ plot(MBRNF_DEM_rast) # min = 1527.020, max = 3945.113 (meters)
 plot(is.na(MBRNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(MBRNF_DEM_rast, "MBRNF_DEM_rast.tif")
-MBRNF_DEM_rast <- rast("MBRNF_DEM_rast.tif")
+writeRaster(MBRNF_DEM_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_DEM_rast.tif")
+MBRNF_DEM_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_DEM_rast.tif")
 
 ### calc slope ----
 MBRNF_slope_rast = terrain(MBRNF_DEM_rast, v="slope", unit="degrees")
 plot(MBRNF_slope_rast)
 
 #### write & read ----
-writeRaster(MBRNF_slope_rast, "MBRNF_slope_rast.tif")
-MBRNF_slope_rast <- rast("MBRNF_slope_rast.tif")
+writeRaster(MBRNF_slope_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_slope_rast.tif")
+MBRNF_slope_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -184,8 +184,8 @@ plot(MBRNF_slope_filt_rast, col = "mediumorchid2")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(MBRNF_slope_filt_rast, "MBRNF_slope_filt_rast.tif")
-MBRNF_slope_filt_rast <- rast("MBRNF_slope_filt_rast.tif")
+writeRaster(MBRNF_slope_filt_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_slope_filt_rast.tif")
+MBRNF_slope_filt_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -195,16 +195,16 @@ MBRNF_slope_filt_rast <- rast("MBRNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+MBRNF_buffer1km <- buffer(MBRNF_vect, width = 1000)
 
-# get just roads in the MBRNF
-USFS_roads_MBRNF <- terra::intersect(USFS_roads_SRME_projected, MBRNF_vect)
-nrow(USFS_roads_MBRNF) # 3290
+# get just roads in the MBRNF + buffer
+USFS_roads_MBRNF <- terra::intersect(USFS_roads_SRME, MBRNF_buffer1km)
+nrow(USFS_roads_MBRNF) # 3326
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -220,10 +220,10 @@ USFS_roads_MBRNF <- USFS_roads_MBRNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
   ))
 
-nrow(USFS_roads_MBRNF) # 1993
+nrow(USFS_roads_MBRNF) # 2024
 plot(USFS_roads_MBRNF)
-(1993/3290)* 100 # = 60.57751 % of FS roads retained
-100 - 60.57751 # = 39.42249 % dropped
+(2024/3326)* 100 # = 60.85388 % of FS roads retained
+100 - 60.85388 # = 39.14612 % dropped
 
 
 #### USGS roads ----
@@ -231,42 +231,39 @@ plot(USFS_roads_MBRNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the MBRNF
-USGS_roads_MBRNF <- terra::intersect(USGS_roads_SRME_proj, MBRNF_vect)
-nrow(USGS_roads_MBRNF) # 14013
+USGS_roads_MBRNF <- terra::intersect(USGS_roads_SRME, MBRNF_buffer1km)
+nrow(USGS_roads_MBRNF) # 19410
 plot(USGS_roads_MBRNF)
 
 
 ### rasterize ----
 #### USFS ----
-MBRNF_USFS_road_rast <- rasterize(USFS_roads_MBRNF, MBRNF_QMD_filt_rast , touches=TRUE)
+MBRNF_USFS_road_rast <- rasterize(USFS_roads_MBRNF, MBRNF_QMD_rast , touches=TRUE)
 plot(MBRNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(MBRNF_USFS_road_rast)) # values not 1 are NA
-global(MBRNF_USFS_road_rast, fun = "notNA") # 181582 cells not NA
+global(MBRNF_USFS_road_rast, fun = "notNA") # 185999 cells not NA
 
 #### USGS ----
-MBRNF_USGS_road_rast <- rasterize(USGS_roads_MBRNF, MBRNF_QMD_filt_rast , touches=TRUE)
+MBRNF_USGS_road_rast <- rasterize(USGS_roads_MBRNF, MBRNF_QMD_rast , touches=TRUE)
 plot(MBRNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(MBRNF_USGS_road_rast)) # values not 1 are NA
-global(MBRNF_USGS_road_rast, fun = "notNA") # 340396 cells not NA
+global(MBRNF_USGS_road_rast, fun = "notNA") # 423230 cells not NA
 
 
 ### combine ----
 MBRNF_road_rast <- cover(MBRNF_USFS_road_rast, MBRNF_USGS_road_rast)
 plot(MBRNF_road_rast)
 plot(is.na(MBRNF_road_rast))
-global(MBRNF_road_rast, fun = "notNA") # 367668 cells not NA
+global(MBRNF_road_rast, fun = "notNA") # 451066 cells not NA
 
 ##### write & read ----
-writeRaster(MBRNF_road_rast, "MBRNF_road_rast.tif")
-MBRNF_road_rast <- rast("MBRNF_road_rast.tif")
+writeRaster(MBRNF_road_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_road_rast.tif")
+MBRNF_road_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_road_rast.tif")
 
 
 ### distance ----
@@ -276,13 +273,13 @@ plot(MBRNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(MBRNF_road_dist_rast, "MBRNF_road_dist_rast.tif")
-MBRNF_road_dist_rast <- rast("MBRNF_road_dist_rast.tif")
+writeRaster(MBRNF_road_dist_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_road_dist_rast.tif")
+MBRNF_road_dist_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_road_dist_rast.tif")
 
 
 ### filter ----
 minmax(MBRNF_road_dist_rast) 
-# min = 0, max = 143650.9 
+# min = 0, max = 142655.5 
 # but the max we want to include is 917.3261 meters (0.57 miles)
 # if > threshold, make NA; else make value = 500
 
@@ -301,8 +298,8 @@ plot(MBRNF_road_filt_rast, col = "darkorchid2")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(MBRNF_road_filt_rast, "MBRNF_road_filt_rast.tif")
-MBRNF_road_filt_rast <- rast("MBRNF_road_filt_rast.tif")
+writeRaster(MBRNF_road_filt_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_road_filt_rast.tif")
+MBRNF_road_filt_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_road_filt_rast.tif")
 
 
 
@@ -368,16 +365,16 @@ global(slope_resampled, fun = "notNA") # 11391032 cells
 (11391032/12504670)*100 # 91.09422 % remaining after 24* filter
 
 #### road ----
-global(MBRNF_road_filt_rast, fun = "notNA") # 7989714 cells
-(7989714/12504670)*100 # 63.89384 % remaining
+global(MBRNF_road_filt_rast, fun = "notNA") # 8100511 cells
+(8100511/12504670)*100 # 64.77989 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the MBRNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(MBRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3535681 cells
-(3535681/12504670)*100 # 28.27488 % of MBRNF
+global(MBRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 3575651 cells
+(3575651/12504670)*100 # 28.59453 % of MBRNF
 
 
 ## filter & adjust value ----
@@ -387,24 +384,24 @@ MBRNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(MBRNF_priority_rast, fun = "notNA") # 3535681 cells (same as value=615 above)
+global(MBRNF_priority_rast, fun = "notNA") # 3575651 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(MBRNF_priority_rast, transform = FALSE) # 3182112900 m^2
-3182112900/4046.86 # 4046.86 m2/acre = 786316.5 acres
+expanse(MBRNF_priority_rast, transform = FALSE) # 3218085900 m^2
+3218085900/4046.86 # 4046.86 m2/acre = 795205.6 acres
 # entire MBRNF = 2772764 acres (calculated from MBRNF_vect polygon in Part1A_2)
-(786316.5/2772764)*100 # 28.35858 % of MBRNF (almost same as value=615 above)
+(795205.6/2772764)*100 # 28.67917 % of MBRNF (almost same as value=615 above)
 
 ## viz ----
 plot(MBRNF_priority_rast, col = "goldenrod1")
 polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(MBRNF_priority_rast, "MBRNF_priority_rast.tif")
-MBRNF_priority_rast <- rast("MBRNF_priority_rast.tif")
+writeRaster(MBRNF_priority_rast, "./MedBowRouttNF_S4F/.tif/MBRNF_priority_rast.tif")
+MBRNF_priority_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_priority_rast.tif")
 
 
 
@@ -412,12 +409,12 @@ MBRNF_priority_rast <- rast("MBRNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(MBRNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 179093 patches
+# there are 181889  patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 179093 geometries 
+# there are 181889  geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -429,20 +426,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 2234 geoms remain
-(2234/179093)*100 # 1.247397 % of polys remain (are >= 20 acres)
+# 2279 geoms remain
+(2279/179093)*100 # 1.272523 % of polys remain (are >= 20 acres)
 # so ~98 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1891 geoms
-(1891/2234)*100 # 84.64637 % of polys >= 20 acres are also <= 200 acres
+# 1933 geoms
+(1933/2279)*100 # 84.8179 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 343 geoms
+# 346 geoms
 # these do need to be divided
 
 
@@ -466,11 +463,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 4290 geoms
+# 4321 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 MBRNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 6181 geoms
+# 6254 geoms
 
 
 ## adjust ----
@@ -479,7 +476,7 @@ MBRNF_PCUs_1A_vect$PCU_ID <- paste0("MBRNF_PCU_", seq_len(nrow(MBRNF_PCUs_1A_vec
 MBRNF_PCUs_1A_vect$area_acres <- expanse(MBRNF_PCUs_1A_vect) * 0.000247105
 
 summary(MBRNF_PCUs_1A_vect)
-# area_acres min = 19.33, max = 286.20    
+# area_acres min = 19.33, max = 286.48      
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -488,14 +485,14 @@ MBRNF_PCUs_1A_vect <- MBRNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 MBRNF_PCUs_1A_df <- as.data.frame(MBRNF_PCUs_1A_vect)
 
-sum(MBRNF_PCUs_1A_vect$area_acres) # 635324.5 acres
-sum(small_polys_removed$patch_acres) # 635324.5 acres
+sum(MBRNF_PCUs_1A_vect$area_acres) # 641451.5 acres
+sum(small_polys_removed$patch_acres) # 641451.5 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # MBRNF is 2772764 acres 
-(635324.5/2772764)*100 # 22.91304 % of MBRNF are highest priority areas (PCUs)
+(641451.5/2772764)*100 # 23.13401 % of MBRNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -504,7 +501,7 @@ polys(MBRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(MBRNF_PCUs_1A_vect, "MBRNF_PCUs_1A_vect.shp")
-MBRNF_PCUs_1A_vect <- vect("MBRNF_PCUs_1A_vect.shp")
+writeVector(MBRNF_PCUs_1A_vect, "./MedBowRouttNF_S4F/.shp/MBRNF_PCUs_1A_vect.shp")
+MBRNF_PCUs_1A_vect <- vect("./MedBowRouttNF_S4F/.shp/MBRNF_PCUs_1A_vect.shp")
 
 

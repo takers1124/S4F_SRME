@@ -33,8 +33,8 @@ expanse(WRNF_vect) # 10047184922 m^2
 10047184922/4046.86 # 4046.86 m/acre = 2482711 acres
 
 ## write & read ----
-writeVector(WRNF_vect, "WRNF_vect.shp")
-WRNF_vect <- vect("WRNF_vect.shp")
+writeVector(WRNF_vect, "./WhiteRiverNF_S4F/.shp/WRNF_vect.shp")
+WRNF_vect <- vect("./WhiteRiverNF_S4F/.shp/WRNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -50,8 +50,8 @@ WRNF_QMD_rast <- crop(QMD_CONUS, WRNF_vect, mask=TRUE)
 plot(WRNF_QMD_rast)
 
 #### write & read ----
-writeRaster(WRNF_QMD_rast, "WRNF_QMD_rast.tif")
-WRNF_QMD_rast <- rast("WRNF_QMD_rast.tif")
+writeRaster(WRNF_QMD_rast, "./WhiteRiverNF_S4F/.tif/WRNF_QMD_rast.tif")
+WRNF_QMD_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_QMD_rast.tif")
 
 global(WRNF_QMD_rast, fun = "notNA") # 7769855 cells
 
@@ -71,8 +71,8 @@ plot(WRNF_QMD_filt_rast, col = "darkgreen")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(WRNF_QMD_filt_rast, "WRNF_QMD_filt_rast.tif")
-WRNF_QMD_filt_rast <- rast("WRNF_QMD_filt_rast.tif")
+writeRaster(WRNF_QMD_filt_rast, "./WhiteRiverNF_S4F/.tif/WRNF_QMD_filt_rast.tif")
+WRNF_QMD_filt_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -106,8 +106,8 @@ global(WRNF_EVH_rast, fun = "notNA") # 7847389
 summary(WRNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(WRNF_EVH_rast, "WRNF_EVH_rast.tif")
-WRNF_EVH_rast <- rast("WRNF_EVH_rast.tif")
+writeRaster(WRNF_EVH_rast, "./WhiteRiverNF_S4F/.tif/WRNF_EVH_rast.tif")
+WRNF_EVH_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -123,8 +123,8 @@ plot(WRNF_EVH_filt_rast, col = "forestgreen")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(WRNF_EVH_filt_rast, "WRNF_EVH_filt_rast.tif")
-WRNF_EVH_filt_rast <- rast("WRNF_EVH_filt_rast.tif")
+writeRaster(WRNF_EVH_filt_rast, "./WhiteRiverNF_S4F/.tif/WRNF_EVH_filt_rast.tif")
+WRNF_EVH_filt_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_EVH_filt_rast.tif")
 
 
 ## slope ----
@@ -161,16 +161,16 @@ plot(WRNF_DEM_rast) # min = 1661.947 , max = 4346.247 (meters)
 plot(is.na(WRNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(WRNF_DEM_rast, "WRNF_DEM_rast.tif")
-WRNF_DEM_rast <- rast("WRNF_DEM_rast.tif")
+writeRaster(WRNF_DEM_rast, "./WhiteRiverNF_S4F/.tif/WRNF_DEM_rast.tif")
+WRNF_DEM_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_DEM_rast.tif")
 
 ### calc slope ----
 WRNF_slope_rast = terrain(WRNF_DEM_rast, v="slope", unit="degrees")
 plot(WRNF_slope_rast)
 
 #### write & read ----
-writeRaster(WRNF_slope_rast, "WRNF_slope_rast.tif")
-WRNF_slope_rast <- rast("WRNF_slope_rast.tif")
+writeRaster(WRNF_slope_rast, "./WhiteRiverNF_S4F/.tif/WRNF_slope_rast.tif")
+WRNF_slope_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -183,8 +183,8 @@ plot(WRNF_slope_filt_rast, col = "mediumorchid2")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(WRNF_slope_filt_rast, "WRNF_slope_filt_rast.tif")
-WRNF_slope_filt_rast <- rast("WRNF_slope_filt_rast.tif")
+writeRaster(WRNF_slope_filt_rast, "./WhiteRiverNF_S4F/.tif/WRNF_slope_filt_rast.tif")
+WRNF_slope_filt_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -194,16 +194,16 @@ WRNF_slope_filt_rast <- rast("WRNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+WRNF_buffer1km <- buffer(WRNF_vect, width = 1000)
 
-# get just roads in the WRNF
-USFS_roads_WRNF <- terra::intersect(USFS_roads_SRME_projected, WRNF_vect)
-nrow(USFS_roads_WRNF) # 1097
+# get just roads in the WRNF + buffer
+USFS_roads_WRNF <- terra::intersect(USFS_roads_SRME, WRNF_buffer1km)
+nrow(USFS_roads_WRNF) # 1160
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -219,10 +219,10 @@ USFS_roads_WRNF <- USFS_roads_WRNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
   ))
 
-nrow(USFS_roads_WRNF) # 950
+nrow(USFS_roads_WRNF) # 1010
 plot(USFS_roads_WRNF)
-(950/1097)* 100 # = 86.59982 % of FS roads retained
-100 - 86.59982 # = 13.40018 % dropped
+(1010/1160)* 100 # = 87.06897 % of FS roads retained
+100 - 87.06897 # = 12.93103 % dropped
 
 
 #### USGS roads ----
@@ -230,42 +230,39 @@ plot(USFS_roads_WRNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the WRNF
-USGS_roads_WRNF <- terra::intersect(USGS_roads_SRME_proj, WRNF_vect)
-nrow(USGS_roads_WRNF) # 13494
+USGS_roads_WRNF <- terra::intersect(USGS_roads_SRME, WRNF_buffer1km)
+nrow(USGS_roads_WRNF) # 18007
 plot(USGS_roads_WRNF)
 
 
 ### rasterize ----
 #### USFS ----
-WRNF_USFS_road_rast <- rasterize(USFS_roads_WRNF, WRNF_QMD_filt_rast , touches=TRUE)
+WRNF_USFS_road_rast <- rasterize(USFS_roads_WRNF, WRNF_QMD_rast , touches=TRUE)
 plot(WRNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(WRNF_USFS_road_rast)) # values not 1 are NA
-global(WRNF_USFS_road_rast, fun = "notNA") # 105570 cells not NA
+global(WRNF_USFS_road_rast, fun = "notNA") # 112458 cells not NA
 
 #### USGS ----
-WRNF_USGS_road_rast <- rasterize(USGS_roads_WRNF, WRNF_QMD_filt_rast , touches=TRUE)
+WRNF_USGS_road_rast <- rasterize(USGS_roads_WRNF, WRNF_QMD_rast , touches=TRUE)
 plot(WRNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(WRNF_USGS_road_rast)) # values not 1 are NA
-global(WRNF_USGS_road_rast, fun = "notNA") # 270365 cells not NA
+global(WRNF_USGS_road_rast, fun = "notNA") # 318016 cells not NA
 
 
 ### combine ----
 WRNF_road_rast <- cover(WRNF_USFS_road_rast, WRNF_USGS_road_rast)
 plot(WRNF_road_rast)
 plot(is.na(WRNF_road_rast))
-global(WRNF_road_rast, fun = "notNA") # 278049 cells not NA
+global(WRNF_road_rast, fun = "notNA") # 327289 cells not NA
 
 ##### write & read ----
-writeRaster(WRNF_road_rast, "WRNF_road_rast.tif")
-WRNF_road_rast <- rast("WRNF_road_rast.tif")
+writeRaster(WRNF_road_rast, "./WhiteRiverNF_S4F/.tif/WRNF_road_rast.tif")
+WRNF_road_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_road_rast.tif")
 
 
 ### distance ----
@@ -275,13 +272,13 @@ plot(WRNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(WRNF_road_dist_rast, "WRNF_road_dist_rast.tif")
-WRNF_road_dist_rast <- rast("WRNF_road_dist_rast.tif")
+writeRaster(WRNF_road_dist_rast, "./WhiteRiverNF_S4F/.tif/WRNF_road_dist_rast.tif")
+WRNF_road_dist_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_road_dist_rast.tif")
 
 
 ### filter ----
 minmax(WRNF_road_dist_rast) 
-# min = 0, max = 62027.21 
+# min = 0, max = 61128.08 
 # but the max we want to include is 917.3261 meters (0.57 miles)
 # if > threshold, make NA; else make value = 500
 
@@ -300,8 +297,8 @@ plot(WRNF_road_filt_rast, col = "darkorchid2")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(WRNF_road_filt_rast, "WRNF_road_filt_rast.tif")
-WRNF_road_filt_rast <- rast("WRNF_road_filt_rast.tif")
+writeRaster(WRNF_road_filt_rast, "./WhiteRiverNF_S4F/.tif/WRNF_road_filt_rast.tif")
+WRNF_road_filt_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_road_filt_rast.tif")
 
 
 
@@ -367,16 +364,16 @@ global(slope_resampled, fun = "notNA") # 8142656 cells
 (8142656/11186090)*100 # 72.79269 % remaining after 24* filter
 
 #### road ----
-global(WRNF_road_filt_rast, fun = "notNA") # 5715817 cells
-(5715817/11186090)*100 # 51.09754 % remaining
+global(WRNF_road_filt_rast, fun = "notNA") # 5797864 cells
+(5797864/11186090)*100 # 51.83102 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the WRNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(WRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2415544 cells
-(2415544/11186090)*100 # 21.59418 % of WRNF
+global(WRNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2443870 cells
+(2443870/11186090)*100 # 21.8474 % of WRNF
 
 
 ## filter & adjust value ----
@@ -386,24 +383,24 @@ WRNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(WRNF_priority_rast, fun = "notNA") # 2415544 cells (same as value=615 above)
+global(WRNF_priority_rast, fun = "notNA") # 2443870 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(WRNF_priority_rast, transform = FALSE) # 2173989600 m^2
-2173989600/4046.86 # 4046.86 m2/acre = 537204.1 acres
+expanse(WRNF_priority_rast, transform = FALSE) # 2199483000 m^2
+2199483000/4046.86 # 4046.86 m2/acre = 543503.6 acres
 # entire WRNF = 2482711 acres (calculated from WRNF_vect polygon in Part1A_2)
-(537204.1/2482711)*100 # 21.6378 % of WRNF (almost same as value=615 above)
+(543503.6/2482711)*100 # 21.89154 % of WRNF (almost same as value=615 above)
 
 ## viz ----
 plot(WRNF_priority_rast, col = "goldenrod1")
 polys(WRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(WRNF_priority_rast, "WRNF_priority_rast.tif")
-WRNF_priority_rast <- rast("WRNF_priority_rast.tif")
+writeRaster(WRNF_priority_rast, "./WhiteRiverNF_S4F/.tif/WRNF_priority_rast.tif")
+WRNF_priority_rast <- rast("./WhiteRiverNF_S4F/.tif/WRNF_priority_rast.tif")
 
 
 
@@ -411,12 +408,12 @@ WRNF_priority_rast <- rast("WRNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(WRNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 110519  patches
+# there are 112514   patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 110519  geometries 
+# there are 112514   geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -428,20 +425,20 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1749 geoms remain
-(1749/110519)*100 # 1.582533 % of polys remain (are >= 20 acres)
+# 1790 geoms remain
+(1790/110519)*100 # 1.619631 % of polys remain (are >= 20 acres)
 # so ~98 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
 # 1442 geoms
-(1442/1749)*100 # 82.44711 % of polys >= 20 acres are also <= 200 acres
+(1484/1790)*100 # 82.90503 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
 large_polys <- small_polys_removed[small_polys_removed$patch_acres > 200, ]
-# 307 geoms
+# 306 geoms
 # these do need to be divided
 
 
@@ -465,11 +462,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 2895 geoms
+# 2909 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 WRNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4337 geoms
+# 4393 geoms
 
 
 ## adjust ----
@@ -478,7 +475,7 @@ WRNF_PCUs_1A_vect$PCU_ID <- paste0("WRNF_PCU_", seq_len(nrow(WRNF_PCUs_1A_vect))
 WRNF_PCUs_1A_vect$area_acres <- expanse(WRNF_PCUs_1A_vect) * 0.000247105
 
 summary(WRNF_PCUs_1A_vect)
-# area_acres min = 20.02, max = 270.75    
+# area_acres min = 20.02, max = 283.34      
 # not exactly within the desired 20-200 acre range, but close enough
 # this is a step in the method that we could refine in the future
 
@@ -487,14 +484,14 @@ WRNF_PCUs_1A_vect <- WRNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 WRNF_PCUs_1A_df <- as.data.frame(WRNF_PCUs_1A_vect)
 
-sum(WRNF_PCUs_1A_vect$area_acres) # 440293.2 acres
-sum(small_polys_removed$patch_acres) # 440293.2 acres
+sum(WRNF_PCUs_1A_vect$area_acres) # 444663 acres
+sum(small_polys_removed$patch_acres) # 444663 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # WRNF is 2482711 acres 
-(440293.2/2482711)*100 # 17.73437 % of WRNF are highest priority areas (PCUs)
+(444663/2482711)*100 # 17.91038 % of WRNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -503,7 +500,7 @@ polys(WRNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(WRNF_PCUs_1A_vect, "WRNF_PCUs_1A_vect.shp")
-WRNF_PCUs_1A_vect <- vect("WRNF_PCUs_1A_vect.shp")
+writeVector(WRNF_PCUs_1A_vect, "./WhiteRiverNF_S4F/.shp/WRNF_PCUs_1A_vect.shp")
+WRNF_PCUs_1A_vect <- vect("./WhiteRiverNF_S4F/.shp/WRNF_PCUs_1A_vect.shp")
 
 

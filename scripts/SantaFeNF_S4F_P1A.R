@@ -33,8 +33,8 @@ expanse(SFNF_vect) # 6806025928 m^2
 6806025928/4046.86 # 4046.86 m/acre = 1681804 acres
 
 ## write & read ----
-writeVector(SFNF_vect, "SFNF_vect.shp")
-SFNF_vect <- vect("SFNF_vect.shp")
+writeVector(SFNF_vect, "./SantaFeNF_S4F/.shp/SFNF_vect.shp")
+SFNF_vect <- vect("./SantaFeNF_S4F/.shp/SFNF_vect.shp")
 
 
 # (3) pre-process data ----
@@ -50,8 +50,8 @@ SFNF_QMD_rast <- crop(QMD_CONUS, SFNF_vect, mask=TRUE)
 plot(SFNF_QMD_rast)
 
 #### write & read ----
-writeRaster(SFNF_QMD_rast, "SFNF_QMD_rast.tif")
-SFNF_QMD_rast <- rast("SFNF_QMD_rast.tif")
+writeRaster(SFNF_QMD_rast, "./SantaFeNF_S4F/.tif/SFNF_QMD_rast.tif")
+SFNF_QMD_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_QMD_rast.tif")
 
 global(SFNF_QMD_rast, fun = "notNA") # 6090165 cells
 
@@ -71,8 +71,8 @@ plot(SFNF_QMD_filt_rast, col = "darkgreen")
 polys(SFNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(SFNF_QMD_filt_rast, "SFNF_QMD_filt_rast.tif")
-SFNF_QMD_filt_rast <- rast("SFNF_QMD_filt_rast.tif")
+writeRaster(SFNF_QMD_filt_rast, "./SantaFeNF_S4F/.tif/SFNF_QMD_filt_rast.tif")
+SFNF_QMD_filt_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_QMD_filt_rast.tif")
 
 
 ## EVH ----
@@ -106,8 +106,8 @@ global(SFNF_EVH_rast, fun = "notNA") # 5943311
 summary(SFNF_EVH_rast) # min = 3.281, max = 82.021
 
 #### write & read ----
-writeRaster(SFNF_EVH_rast, "SFNF_EVH_rast.tif")
-SFNF_EVH_rast <- rast("SFNF_EVH_rast.tif")
+writeRaster(SFNF_EVH_rast, "./SantaFeNF_S4F/.tif/SFNF_EVH_rast.tif")
+SFNF_EVH_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_EVH_rast.tif")
 
 ### filter ----
 # we only want locations with EVH over 10 feet
@@ -123,8 +123,8 @@ plot(SFNF_EVH_filt_rast, col = "forestgreen")
 polys(SFNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 #### write & read ----
-writeRaster(SFNF_EVH_filt_rast, "SFNF_EVH_filt_rast.tif")
-SFNF_EVH_filt_rast <- rast("SFNF_EVH_filt_rast.tif")
+writeRaster(SFNF_EVH_filt_rast, "./SantaFeNF_S4F/.tif/SFNF_EVH_filt_rast.tif")
+SFNF_EVH_filt_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_EVH_filt_rast.tif")
 
 
 ## slope ----
@@ -156,16 +156,16 @@ plot(SFNF_DEM_rast) # min = 1630.083 , max = 3986.089  (meters)
 plot(is.na(SFNF_DEM_rast)) # covers the entire AOI, will use for stats (see step 4)
 
 #### write & read ----
-writeRaster(SFNF_DEM_rast, "SFNF_DEM_rast.tif")
-SFNF_DEM_rast <- rast("SFNF_DEM_rast.tif")
+writeRaster(SFNF_DEM_rast, "./SantaFeNF_S4F/.tif/SFNF_DEM_rast.tif")
+SFNF_DEM_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_DEM_rast.tif")
 
 ### calc slope ----
 SFNF_slope_rast = terrain(SFNF_DEM_rast, v="slope", unit="degrees")
 plot(SFNF_slope_rast)
 
 #### write & read ----
-writeRaster(SFNF_slope_rast, "SFNF_slope_rast.tif")
-SFNF_slope_rast <- rast("SFNF_slope_rast.tif")
+writeRaster(SFNF_slope_rast, "./SantaFeNF_S4F/.tif/SFNF_slope_rast.tif")
+SFNF_slope_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_slope_rast.tif")
 
 ### filter ----
 # we only want locations with slope under 24 degrese
@@ -178,8 +178,8 @@ plot(SFNF_slope_filt_rast, col = "mediumorchid2")
 polys(SFNF_vect, col = "black", alpha=0.01, lwd=0.5)
 
 #### write & read ----
-writeRaster(SFNF_slope_filt_rast, "SFNF_slope_filt_rast.tif")
-SFNF_slope_filt_rast <- rast("SFNF_slope_filt_rast.tif")
+writeRaster(SFNF_slope_filt_rast, "./SantaFeNF_S4F/.tif/SFNF_slope_filt_rast.tif")
+SFNF_slope_filt_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_slope_filt_rast.tif")
 
 
 ## road ----
@@ -189,16 +189,16 @@ SFNF_slope_filt_rast <- rast("SFNF_slope_filt_rast.tif")
 # downloaded from the FS Geodata Clearinghouse
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USFS_roads_SRME <- vect("FS_road_SRME_Clip.shp")
-crs(USFS_roads_SRME) # EPSG: 4269
-nrow(USFS_roads_SRME) # 26985
+USFS_roads_SRME <- vect("Trans_RoadCore_USFS_Clip_SRME.shp")
+crs(USFS_roads_SRME) # EPSG: 5070
+nrow(USFS_roads_SRME) # 26180
 
-# project
-USFS_roads_SRME_projected <- project(USFS_roads_SRME, "EPSG:5070")
+# create a buffer around NF
+SFNF_buffer1km <- buffer(SFNF_vect, width = 1000)
 
-# get just roads in the SFNF
-USFS_roads_SFNF <- terra::intersect(USFS_roads_SRME_projected, SFNF_vect)
-nrow(USFS_roads_SFNF) # 8508
+# get just roads in the SFNF + buffer
+USFS_roads_SFNF <- terra::intersect(USFS_roads_SRME, SFNF_buffer1km)
+nrow(USFS_roads_SFNF) # 8539
 
 # filter for specific operational maintenance levels
 # see unique names 
@@ -214,10 +214,10 @@ USFS_roads_SFNF <- USFS_roads_SFNF %>%
     "5 - HIGH DEGREE OF USER COMFORT"
   ))
 
-nrow(USFS_roads_SFNF) # 6293
+nrow(USFS_roads_SFNF) # 6320
 plot(USFS_roads_SFNF)
-(6293/8508)* 100 # = 73.96568 % of FS roads retained
-100 - 73.96568 # = 26.03432 % dropped
+(6320/8539)* 100 # = 74.01335 % of FS roads retained
+100 - 74.01335 # = 25.98665 % dropped
 
 
 #### USGS roads ----
@@ -225,42 +225,39 @@ plot(USFS_roads_SFNF)
 # downloaded from The National Map transportation dataset
 # then pre-processed (Analysis Tools -> Clip) in ArcGIS to only include roads in the SRME NFs
 
-USGS_roads_SRME <- vect("Trans_RoadSegment_Clip.shp")
-crs(USGS_roads_SRME) # EPSG: 4269
-nrow(USGS_roads_SRME) # 132307
-
-# project
-USGS_roads_SRME_proj <- project(USGS_roads_SRME, "EPSG: 5070")
+USGS_roads_SRME <- vect("Trans_RoadSegment_USGS_Clip_SRME.shp")
+crs(USGS_roads_SRME) # EPSG: 5070
+nrow(USGS_roads_SRME) # 312312
 
 # get just roads in the SFNF
-USGS_roads_SFNF <- terra::intersect(USGS_roads_SRME_proj, SFNF_vect)
-nrow(USGS_roads_SFNF) # 10259
+USGS_roads_SFNF <- terra::intersect(USGS_roads_SRME, SFNF_buffer1km)
+nrow(USGS_roads_SFNF) # 15154
 plot(USGS_roads_SFNF)
 
 
 ### rasterize ----
 #### USFS ----
-SFNF_USFS_road_rast <- rasterize(USFS_roads_SFNF, SFNF_QMD_filt_rast , touches=TRUE)
+SFNF_USFS_road_rast <- rasterize(USFS_roads_SFNF, SFNF_QMD_rast , touches=TRUE)
 plot(SFNF_USFS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(SFNF_USFS_road_rast)) # values not 1 are NA
-global(SFNF_USFS_road_rast, fun = "notNA") # 319373 cells not NA
+global(SFNF_USFS_road_rast, fun = "notNA") # 324317 cells not NA
 
 #### USGS ----
-SFNF_USGS_road_rast <- rasterize(USGS_roads_SFNF, SFNF_QMD_filt_rast , touches=TRUE)
+SFNF_USGS_road_rast <- rasterize(USGS_roads_SFNF, SFNF_QMD_rast , touches=TRUE)
 plot(SFNF_USGS_road_rast, col="blue") # all values = 1 (if had a road line)
 plot(is.na(SFNF_USGS_road_rast)) # values not 1 are NA
-global(SFNF_USGS_road_rast, fun = "notNA") # 182945 cells not NA
+global(SFNF_USGS_road_rast, fun = "notNA") # 245002 cells not NA
 
 
 ### combine ----
 SFNF_road_rast <- cover(SFNF_USFS_road_rast, SFNF_USGS_road_rast)
 plot(SFNF_road_rast)
 plot(is.na(SFNF_road_rast))
-global(SFNF_road_rast, fun = "notNA") # 361555 cells not NA
+global(SFNF_road_rast, fun = "notNA") # 424818 cells not NA
 
 ##### write & read ----
-writeRaster(SFNF_road_rast, "SFNF_road_rast.tif")
-SFNF_road_rast <- rast("SFNF_road_rast.tif")
+writeRaster(SFNF_road_rast, "./SantaFeNF_S4F/.tif/SFNF_road_rast.tif")
+SFNF_road_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_road_rast.tif")
 
 
 ### distance ----
@@ -270,13 +267,13 @@ plot(SFNF_road_dist_rast)
 # cell values = distance to nearest road (in meters)
 
 #### write & read file ----
-writeRaster(SFNF_road_dist_rast, "SFNF_road_dist_rast.tif")
-SFNF_road_dist_rast <- rast("SFNF_road_dist_rast.tif")
+writeRaster(SFNF_road_dist_rast, "./SantaFeNF_S4F/.tif/SFNF_road_dist_rast.tif")
+SFNF_road_dist_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_road_dist_rast.tif")
 
 
 ### filter ----
 minmax(SFNF_road_dist_rast) 
-# min = 0, max = 68497.1 
+# min = 0, max = 67491.69 
 # but the max we want to include is 917.3261 meters (0.57 miles)
 # if > threshold, make NA; else make value = 500
 
@@ -295,8 +292,8 @@ plot(SFNF_road_filt_rast, col = "darkorchid2")
 polys(SFNF_vect, col = "black", alpha=0.01, lwd=1)
 
 #### write & read ----
-writeRaster(SFNF_road_filt_rast, "SFNF_road_filt_rast.tif")
-SFNF_road_filt_rast <- rast("SFNF_road_filt_rast.tif")
+writeRaster(SFNF_road_filt_rast, "./SantaFeNF_S4F/.tif/SFNF_road_filt_rast.tif")
+SFNF_road_filt_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_road_filt_rast.tif")
 
 
 
@@ -362,16 +359,16 @@ global(slope_resampled, fun = "notNA") # 6331391 cells
 (6331391/7583452)*100 # 83.48956 % remaining after 24* filter
 
 #### road ----
-global(SFNF_road_filt_rast, fun = "notNA") # 5397294 cells
-(5397294/7583452)*100 # 71.17199 % remaining
+global(SFNF_road_filt_rast, fun = "notNA") # 5462661 cells
+(5462661/7583452)*100 # 72.03396 % remaining
 
 
 ### combined PFs ----
 # we want to know what % of the SFNF meets all of the priority factor thresholds, after combining
 
 # value 615 = road + slope + QMD + EVH
-global(SFNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2527628 cells
-(2527628/7583452)*100 # 33.33084 % of SFNF
+global(SFNF_combined_rast == 615, fun = "sum", na.rm = TRUE) # 2549368 cells
+(2549368/7583452)*100 # 33.61751 % of SFNF
 
 
 ## filter & adjust value ----
@@ -381,24 +378,24 @@ SFNF_priority_rast <- ifel(
   1, NA)
 
 # just confirm filter
-global(SFNF_priority_rast, fun = "notNA") # 2527628 cells (same as value=615 above)
+global(SFNF_priority_rast, fun = "notNA") # 2549368 cells (same as value=615 above)
 
 
 ## calc area ---- 
 # transform = FALSE bc already an equal-area projection, EPSG: 5070, Conus Albers
 # default units are m^2
-expanse(SFNF_priority_rast, transform = FALSE) # 2274865200 m^2
-2274865200/4046.86 # 4046.86 m2/acre = 562130.9 acres
+expanse(SFNF_priority_rast, transform = FALSE) # 2294431200 m^2
+2294431200/4046.86 # 4046.86 m2/acre = 566965.8 acres
 # entire SFNF = 1681804 acres (calculated from SFNF_vect polygon in Part1A_2)
-(562130.9/1681804)*100 # 33.42428 % of SFNF (almost same as value=615 above)
+(566965.8/1681804)*100 # 33.71176 % of SFNF (almost same as value=615 above)
 
 ## viz ----
 plot(SFNF_priority_rast, col = "goldenrod1")
 polys(SFNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 ### write & read ----
-writeRaster(SFNF_priority_rast, "SFNF_priority_rast.tif")
-SFNF_priority_rast <- rast("SFNF_priority_rast.tif")
+writeRaster(SFNF_priority_rast, "./SantaFeNF_S4F/.tif/SFNF_priority_rast.tif")
+SFNF_priority_rast <- rast("./SantaFeNF_S4F/.tif/SFNF_priority_rast.tif")
 
 
 
@@ -406,12 +403,12 @@ SFNF_priority_rast <- rast("SFNF_priority_rast.tif")
 ## patches ----
 # btw this line took ~20 minutes to run
 priority_patches_all <- patches(SFNF_priority_rast, directions=4, values=FALSE, zeroAsNA=FALSE, allowGaps=FALSE)
-# there are 104422 patches
+# there are 105933  patches
 
 
 ## make polygons ----
 patch_all_polys <- as.polygons(priority_patches_all, values = FALSE)
-# there are 104422 geometries 
+# there are 105933  geometries 
 
 # add a patch_ID attribute for each poly
 patch_all_polys$patch_ID <- 1:nrow(patch_all_polys) 
@@ -423,15 +420,15 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
-# 1319 geoms remain
-(1319/104422)*100 # 1.263144 % of polys remain (are >= 20 acres)
+# 1350 geoms remain
+(1350/104422)*100 # 1.292831 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 
 # separate mid-sized polys (20-200 acres)
 mid_polys <- small_polys_removed[small_polys_removed$patch_acres <= 200, ]
-# 1148 geoms
-(1148/1319)*100 # 87.03563 % of polys >= 20 acres are also <= 200 acres
+# 1179 geoms
+(1179/1350)*100 # 87.33333 % of polys >= 20 acres are also <= 200 acres
 # these don't need to be divided
 
 # separate large polys ( > 200 acres)
@@ -460,11 +457,11 @@ divided_polys_list <- lapply(1:nrow(large_polys), function(i) {
 
 # combine all divided polys into a single SpatVector
 divided_polys_vect <- do.call(rbind, divided_polys_list)
-# 3288 geoms
+# 3302 geoms
 
 # combine the mid-sized polys with the newly divided large polys
 SFNF_PCUs_1A_vect <- rbind(mid_polys, divided_polys_vect)
-# 4436 geoms
+# 4481 geoms
 
 
 ## adjust ----
@@ -482,14 +479,14 @@ SFNF_PCUs_1A_vect <- SFNF_PCUs_1A_vect[, c("PCU_ID", "area_acres")]
 
 SFNF_PCUs_1A_df <- as.data.frame(SFNF_PCUs_1A_vect)
 
-sum(SFNF_PCUs_1A_vect$area_acres) # 472116.1 acres
-sum(small_polys_removed$patch_acres) # 472116.1 acres
+sum(SFNF_PCUs_1A_vect$area_acres) # 475445.5 acres
+sum(small_polys_removed$patch_acres) # 475445.5 acres
 # bc these are =, we know the divide function worked (retained all area)
 
 
 ## stats ----
 # SFNF is 1681804 acres 
-(472116.1/1681804)*100 # 28.072 % of SFNF are highest priority areas (PCUs)
+(475445.5/1681804)*100 # 28.26997 % of SFNF are highest priority areas (PCUs)
 
 
 ## viz ----
@@ -498,7 +495,7 @@ polys(SFNF_vect, col = "black", alpha=0.01, lwd=1.5)
 
 
 ### write & read ----
-writeVector(SFNF_PCUs_1A_vect, "SFNF_PCUs_1A_vect.shp")
-SFNF_PCUs_1A_vect <- vect("SFNF_PCUs_1A_vect.shp")
+writeVector(SFNF_PCUs_1A_vect, "./SantaFeNF_S4F/.shp/SFNF_PCUs_1A_vect.shp")
+SFNF_PCUs_1A_vect <- vect("./SantaFeNF_S4F/.shp/SFNF_PCUs_1A_vect.shp")
 
 
