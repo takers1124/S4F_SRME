@@ -8,6 +8,9 @@ library(terra)
 library(tidyterra) 
 library(dplyr)
 
+sessionInfo()
+RStudio.Version()
+
 ## create regional boundary ----
 ### combine NFs within SRME ----
 # load & process
@@ -34,16 +37,22 @@ SRME_NFs_projected <- project(SRME_NFs_unprojected,"EPSG:5070")
 
 ### add MLSNF ----
 # polygon created in MantiLaSalNF_S4F_P1A.R  script (only using part of NF)
-MLSNF_vect <- vect("MLSNF_vect.shp")
+MLSNF_vect <- vect("./MantiLaSalNF_S4F/.shp/MLSNF_vect.shp")
 
 # add to other NFs
 SRME_NFs <- rbind(SRME_NFs_projected, MLSNF_vect)
   # has 10 geometries
+plot(SRME_NFs)
+
+#### write & read ----
+writeVector(SRME_NFs, "./SRME_S4F/.shp/NFs_in_SRME_vect.shp")
+SRME_NFs <- vect("./SRME_S4F/.shp/NFs_in_SRME_vect.shp")
 
 
 ### add SRME ----
 # some of the NFs fall slightly outside of the SRME
 EPA_ecoregions <- vect("us_eco_l3.shp") # 1250 geoms
+crs(EPA_ecoregions) # EPSG: 8826
 
 # see unique names 
 names(EPA_ecoregions)
@@ -73,8 +82,19 @@ plot(SRME_NFs_vect)
   # is the SRME boundary + the extra area just outside but covered by NFs
 
 #### write & read ----
-writeVector(SRME_NFs_vect, "./SRME/shp/SRME_NFs_vect.shp")
-SRME_NFs_vect <- vect("./SRME/shp/SRME_NFs_vect.shp")
+writeVector(SRME_NFs_vect, "./SRME_S4F/.shp/SRME_NFs_vect.shp")
+SRME_NFs_vect <- vect("./SRME_S4F/.shp/SRME_NFs_vect.shp")
+  # this will be used for mapping & some data-preprocessing
+
+
+### add buffer ----
+  # also need a buffer to clip road layers just outside of boundary (which is done in Arc)
+SRME_NFs_buffer_vect <- buffer(SRME_NFs_vect, width = 1000) # units in meters
+
+#### write & read ----
+writeVector(SRME_NFs_buffer_vect, "./SRME_S4F/.shp/SRME_NFs_buffer_vect.shp")
+SRME_NFs_buffer_vect <- vect("./SRME_S4F/.shp/SRME_NFs_buffer_vect.shp")
+
 
 
 ## combine PCU vectors ----
@@ -103,7 +123,7 @@ PCU_list <- list(ARNF_PCUs_1A_vect, CNF_PCUs_1A_vect, GMUGNF_PCUs_1A_vect,
 
 # combine
 SRME_PCUs <- do.call(rbind, PCU_list)
-  # has 45640 geometries 
+  # has 46179 geometries 
 SRME_PCUs_df <- as.data.frame(SRME_PCUs)
 
 
@@ -145,8 +165,8 @@ global(SRME_CFP_rast, fun = "notNA") # 165808312 cells at 30x30 m resolution
 # this dataset covers 100% of the SRME  
 
 #### write & read file ----
-writeRaster(SRME_CFP_rast, "./SRME/tif/SRME_CFP_rast.tif")
-SRME_CFP_rast <- rast("./SRME/tif/SRME_CFP_rast.tif")
+writeRaster(SRME_CFP_rast, "./SRME_S4F/.tif/SRME_CFP_rast.tif")
+SRME_CFP_rast <- rast("./SRME_S4F/.tif/SRME_CFP_rast.tif")
 
 
 ## (B) elevation & slope ----
@@ -196,18 +216,19 @@ SRME_DEM_sprc <- sprc(SRME_DEM_list)
 SRME_DEM_rast <- mosaic(SRME_DEM_sprc)
 # viz
 plot(SRME_DEM_rast)
+summary(SRME_DEM_rast) # min = 1607, max = 4255           
 
 ##### write & read ----
-writeRaster(SRME_DEM_rast, "./SRME/tif/SRME_DEM_rast.tif") 
-SRME_DEM_rast <- rast("./SRME/tif/SRME_DEM_rast.tif")
+writeRaster(SRME_DEM_rast, "./SRME_S4F/.tif/SRME_DEM_rast.tif") 
+SRME_DEM_rast <- rast("./SRME_S4F/.tif/SRME_DEM_rast.tif")
 
 ### slope ----
 SRME_slope_rast = terrain(SRME_DEM_rast, v="slope", unit="degrees")
 plot(SRME_slope_rast)
 
 #### write & read ----
-writeRaster(SRME_slope_rast, "./SRME/tif/SRME_slope_rast.tif")
-SRME_slope_rast <- rast("./SRME/tif/SRME_slope_rast.tif")
+writeRaster(SRME_slope_rast, "./SRME_S4F/.tif/SRME_slope_rast.tif")
+SRME_slope_rast <- rast("./SRME_S4F/.tif/SRME_slope_rast.tif")
 
 
 ## (C) roads ----
@@ -243,18 +264,13 @@ SRME_road_dist_rast <- crop(SRME_road_dist_rast, SRME_NFs_vect, mask = TRUE)
 plot(SRME_road_dist_rast)
 
 #### write & read ----
-writeRaster(SRME_road_dist_rast, "./SRME/tif/SRME_road_dist_rast.tif") 
-SRME_road_dist_rast <- rast("./SRME/tif/SRME_road_dist_rast.tif")
+writeRaster(SRME_road_dist_rast, "./SRME_S4F/.tif/SRME_road_dist_rast.tif") 
+SRME_road_dist_rast <- rast("./SRME_S4F/.tif/SRME_road_dist_rast.tif")
 
 
 ## (D) nursery inventory ----
 # goal is to see if any of the PCUs that we identified are already represented in the nursery inventory
 # nursery inventories are not standardized across the forest service
-# see S4F_SRME_Overview_RMRS.pdf for a full description of how nursery inventory was obtained and modified 
-
-### **Q-K ----
-# depending on how much detail we want to include in our published paper, we may(not) want to have 
-  # this S4F_SRME_Overview_RMRS.pdf to share with the forest managers/to publish on the RDA or whatever
 
 ### import & adjust ----
 # read in nursery inventories
@@ -324,36 +340,34 @@ str(seed.nums.all)
 ### filter ----
 # only for target spp
 conifer_seed_all <- seed.nums.all %>% 
-  filter(tolower(species) %in% c("western white pine", "Douglas-fir",
+  filter(tolower(species) %in% c("Douglas-fir", "white fir",
                                  "Engelmann spruce", "lodgepole pine",
                                  "ponderosa pine", "limber pine",
-                                 "white fir", "whitebark pine",
-                                 "singleleaf pinyon pine", "southwestern white pine",
-                                 "two-needle pinyon pine", "Arizona pine",
-                                 "blue spruce", "bristlecone pine",
-                                 "Great Basin bristlecone pine"))
-# has 1715 rows (seedlots)
+                                 "southwestern white pine",
+                                 "two-needle pinyon pine",
+                                 "blue spruce", "bristlecone pine"))
+# has 1696 rows (seedlots)
 
 # filter only seedots that have lat/long info
 conifer_seed <- conifer_seed_all %>% 
   filter(!is.na(lat_2), !is.na(long_2))
-# 1296 rows
-(1296/1715)*100 # 75.6 % of seedlots have coords
+# 1282 rows
+(1282/1696)*100 # 75.58962 % of seedlots have coords
 
 # add ID col
 conifer_seed$SL_ID <- 1:nrow(conifer_seed)
 
-# fix messed up row... 1096 has lat/long switched...
+# fix messed up row... 1082 has lat/long switched...
 conifer_seed_coords <- conifer_seed %>% 
   mutate(
     temp_lat = lat_2,# temp column to hold lat values
     lat_2 = if_else(
-      SL_ID == "1096", # ID the problem row
+      SL_ID == "1082", # ID the problem row
       long_2 * -1, # if it's the problem row, swap long_2 value to into the lat_2 col and fix the sign
       lat_2 # if not the problem row, keep original lat_2 value
     ),
     long_2 = if_else(
-      SL_ID == "1096",
+      SL_ID == "1082",
       temp_lat * -1,
       long_2
     )
@@ -369,37 +383,35 @@ plot(seed_points)
 seed_points_vect <- project(seed_points, "epsg:5070")
 plot(seed_points_vect)
 
-#### write & read ----
-writeVector(seed_points_vect, "seed_points_vect.shp")
-seed_points_vect <- vect("seed_points_vect.shp")
-
-seed_points_df <- as.data.frame(seed_points_vect)
-
-### convert to polys ----
-# make a circular buffer poly with 500 m width
-seed_poly_vect <- buffer(seed_points_vect, width = 500)
-plot(seed_poly_vect)
-
-#### write & read ----
-writeVector(seed_poly_vect, "seed_poly_vect.shp")
-seed_poly_vect <- vect("seed_poly_vect.shp")
-
 # but want to filter for only those that are located within the SRME
-seed_within <- relate(seed_poly_vect, SRME_NFs_vect, relation = "within")
+seed_within <- relate(seed_points_vect, SRME_NFs_vect, relation = "within")
 # add as attribute to the spatvector
-seed_poly_vect$within_SRME <- seed_within
+seed_points_vect$within_SRME <- seed_within
 
 # and we don't need the other attributes
-seed_SRME_vect <- seed_poly_vect %>% 
+SRME_seed_points_vect <- seed_points_vect %>% 
   filter(within_SRME == "TRUE") %>% 
-  select(SL_ID, Lot, species, Year, Balance, nursery)
+  select(SL_ID, Lot, species, nursery, Year, Balance)
 
-# has 164 geoms 
-(164/1296)*100 # = 12.65432 % of seedlot polys are within the SRME
+plot(SRME_seed_points_vect)
+# there are 166 points
+(166/1282)*100 # = 12.94852 % of seedlots with lat/long are within the SRME
 
 #### write & read ----
-writeVector(seed_SRME_vect, "seed_SRME_vect.shp")
-seed_SRME_vect <- vect("seed_SRME_vect.shp")
+writeVector(SRME_seed_points_vect, "./SRME_S4F/.shp/SRME_seed_points_vect.shp")
+SRME_seed_points_vect <- vect("./SRME_S4F/.shp/SRME_seed_points_vect.shp")
+
+seed_points_df <- as.data.frame(SRME_seed_points_vect)
+
+
+### convert to polys ----
+# make a circular buffer poly with 564 m width (~ 1km^2 area)
+SRME_seed_poly_vect <- buffer(SRME_seed_points_vect, width = 564)
+plot(SRME_seed_poly_vect)
+
+#### write & read ----
+writeVector(SRME_seed_poly_vect, "./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
+SRME_seed_poly_vect <- vect("./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
 
 
 
@@ -412,12 +424,13 @@ seed_SRME_vect <- vect("seed_SRME_vect.shp")
 # these attributes were not used to create PCUs
 # we are adding them to provide basic geographic information about each PCU for reference and filtering
 
+
 ### nursery SL ----
 # we want to know if any of the nursery seedlots (SLs) overlap with our PCUs
 # and if they do overlap, the PCU will have the SL_ID added as an attribute for looking up later
 
 # compute spatial relationship
-SL_relate <- relate(SRME_PCUs, seed_SRME_vect, relation = "intersects", pairs = TRUE, na.rm = TRUE)
+SL_relate <- relate(SRME_PCUs, SRME_seed_poly_vect, relation = "intersects", pairs = TRUE, na.rm = TRUE)
 str(SL_relate) # a list of vectors (one per PCU) with intersecting pairs
 
 # adjust data
@@ -431,26 +444,30 @@ rel_df <- rel_df %>%
   mutate(hit = row_number()) %>%
   ungroup()
 
-# slice the first and second hits
-first_hit  <- filter(rel_df, hit == 1)
-second_hit <- filter(rel_df, hit == 2)
-# when expanding PCU creation, the # hits may be >2, so may need to adjust 
+# slice the hits
+first_hit  <- filter(rel_df, hit == 1) # has 456 rows
+second_hit <- filter(rel_df, hit == 2) # has 52 rows
+third_hit <- filter(rel_df, hit == 3) # has 1 row
+# when expanding PCU creation, the # hits may be >3, so may need to adjust 
 
 # prepare attribute vectors
 SL_A <- rep(NA_character_, nrow(SRME_PCUs))
 SL_B <- rep(NA_character_, nrow(SRME_PCUs))
+SL_C <- rep(NA_character_, nrow(SRME_PCUs))
 
 # assign seedlot names (Lot attribute) by index
-SL_A[first_hit$pcu_idx]  <- seed_poly_vect$Lot[first_hit$seed_idx]
-SL_B[second_hit$pcu_idx] <- seed_poly_vect$Lot[second_hit$seed_idx]
+SL_A[first_hit$pcu_idx]  <- SRME_seed_poly_vect$Lot[first_hit$seed_idx]
+SL_B[second_hit$pcu_idx] <- SRME_seed_poly_vect$Lot[second_hit$seed_idx]
+SL_C[third_hit$pcu_idx] <- SRME_seed_poly_vect$Lot[third_hit$seed_idx]
 
 # attach attributes
 SRME_PCUs$seedlot_A <- SL_A
 SRME_PCUs$seedlot_B <- SL_B
+SRME_PCUs$seedlot_C <- SL_C
 
 # stats
 count_non_na <- sum(!is.na(SRME_PCUs$seedlot_A))
-# 393 PCUs overlap with at least 1 seedlot
+# 456 PCUs overlap with at least 1 seedlot
 
 
 ### ranger district ----
@@ -483,6 +500,7 @@ SRME_PCUs$DISTRICTNA <- RD_at_centroid$DISTRICTNA
 # note, the USFS is currently working on updating these seed zones
 
 SZ_all <- vect("HistoricalTreeSeedZones.shp")
+crs(SZ_all) # EPSG: 882
 SZ_all_projected <- project(SZ_all, "EPSG:5070")
 
 # extract
@@ -495,14 +513,14 @@ SRME_PCUs$seed_zone <- extract_SZ$SeedZone
 
 ### elevation ----
 # using SRME_DEM_rast created in Part1B_2B (above)
-SRME_DEM_rast <- rast("./SRME/tif/SRME_DEM_rast.tif")
+SRME_DEM_rast <- rast("./SRME_S4F/.tif/SRME_DEM_rast.tif")
 summary(SRME_DEM_rast) # min = 1607, max = 4255
 
 # the DEM is in meters, but we want feet
 # convert m to ft
 meters_to_feet_factor <- 3.28084
 SRME_DEM_ft <- SRME_DEM_rast * meters_to_feet_factor 
-summary(SRME_DEM_ft) # min = 5374, max = 14030  
+summary(SRME_DEM_ft) # min = 5271, max = 13960            
 
 # extract median
 Elv_med_df <- extract(SRME_DEM_ft, SRME_PCUs, fun = median)
@@ -567,7 +585,7 @@ extract_EVH <- extract_EVH %>%
 
 ### slope ----
 # using SRME_slope_rast created in Part1B_2B (above)
-SRME_slope_rast <- rast("./SRME/tif/SRME_slope_rast.tif")
+SRME_slope_rast <- rast("./SRME_S4F/.tif/SRME_slope_rast.tif")
 
 extract_slope <- extract(SRME_slope_rast, SRME_PCUs, fun = median, na.rm = TRUE)
 str(extract_slope)
@@ -580,7 +598,7 @@ extract_slope <- extract_slope %>%
 
 ### road ----
 # using SRME_road_dist_rast created in Part1B_2B (above)
-SRME_road_dist_rast <- rast("./SRME/tif/SRME_road_dist_rast.tif")
+SRME_road_dist_rast <- rast("./SRME_S4F/.tif/SRME_road_dist_rast.tif")
 
 extract_road_dist <- extract(SRME_road_dist_rast, SRME_PCUs, fun = median, na.rm = TRUE)
 str(extract_road_dist)
@@ -596,16 +614,35 @@ extract_road_dist <- extract_road_dist %>%
 ## (C) attributes: other objectives ----
 # these attributes are added to the PCU as a tool for objective-focused filtering
 
+### MCMT ----
+# using Mean Coldest Month Temp (MCMT) during the reference period (1961-1990)
+MCMT_CONUS <- rast("Normal_1961_1990_MCMT.tif")
+crs(MCMT_CONUS) # EPSG: 8806
+# project
+MCMT_CONUS_projected <- project(MCMT_CONUS, "EPSG:5070")
+# crop & mask 
+MCMT_SRME <- crop(MCMT_CONUS_projected, SRME_NFs_vect, mask = TRUE)
+
+# extract
+extract_MCMT <- extract(MCMT_SRME, SRME_PCUs, fun = median, na.rm = TRUE)
+str(extract_MCMT)
+# adjust
+extract_MCMT <- extract_MCMT %>% 
+  rename(MCMT_C = "bigfile[, varname]") %>% 
+  mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
+  select(-1)
+
+
 ### CFP ----
 # using SRME_CFP_rast created in Part1B_2B (above)
-SRME_CFP_rast <- rast("./SRME/tif/SRME_CFP_rast.tif")
+SRME_CFP_rast <- rast("./SRME_S4F/.tif/SRME_CFP_rast.tif")
 
 # extract
 extract_CFP <- extract(SRME_CFP_rast, SRME_PCUs, fun = median, na.rm = TRUE)
 str(extract_CFP)
 # adjust
 extract_CFP <- extract_CFP %>% 
-  rename(CFP_prob = crown_fire_2025_c00049_r00041) %>% 
+  rename(CFP_prob = crown_fire_2025_c00047_r00042) %>% 
   mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
   select(-1)
 
@@ -636,8 +673,8 @@ crs(PIPO_projected) # EPSG 5070
 SRME_PIPO_rast <- crop(PIPO_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIPO_rast, "./SRME/tif/SRME_PIPO_rast.tif")
-SRME_PIPO_rast <- rast("./SRME/tif/SRME_PIPO_rast.tif")
+writeRaster(SRME_PIPO_rast, "./SRME_S4F/.tif/SRME_PIPO_rast.tif")
+SRME_PIPO_rast <- rast("./SRME_S4F/.tif/SRME_PIPO_rast.tif")
 
 # extract
 extract_PIPO <- extract(SRME_PIPO_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -660,8 +697,8 @@ crs(PICO_projected) # EPSG 5070
 SRME_PICO_rast <- crop(PICO_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PICO_rast, "./SRME/tif/SRME_PICO_rast.tif")
-SRME_PICO_rast <- rast("./SRME/tif/SRME_PICO_rast.tif")
+writeRaster(SRME_PICO_rast, "./SRME_S4F/.tif/SRME_PICO_rast.tif")
+SRME_PICO_rast <- rast("./SRME_S4F/.tif/SRME_PICO_rast.tif")
 
 # extract
 extract_PICO <- extract(SRME_PICO_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -684,8 +721,8 @@ crs(PIFL_projected) # EPSG 5070
 SRME_PIFL_rast <- crop(PIFL_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIFL_rast, "./SRME/tif/SRME_PIFL_rast.tif")
-SRME_PIFL_rast <- rast("./SRME/tif/SRME_PIFL_rast.tif")
+writeRaster(SRME_PIFL_rast, "./SRME_S4F/.tif/SRME_PIFL_rast.tif")
+SRME_PIFL_rast <- rast("./SRME_S4F/.tif/SRME_PIFL_rast.tif")
 
 # extract
 extract_PIFL <- extract(SRME_PIFL_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -696,29 +733,6 @@ extract_PIFL <- extract_PIFL %>%
   mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
   select(-1)
 
-
-### PIMO ----
-# read 
-PIMO_BigMap <- rast("Hosted_AGB_0119_2018_WESTERN_WHITE_PINE_05292023195343.tif")
-# project
-crs(PIMO_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
-PIMO_projected <- project(PIMO_BigMap, "EPSG:5070")
-crs(PIMO_projected) # EPSG 5070
-# crop & mask
-SRME_PIMO_rast <- crop(PIMO_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
-
-#### write & read ----
-writeRaster(SRME_PIMO_rast, "./SRME/tif/SRME_PIMO_rast.tif")
-SRME_PIMO_rast <- rast("./SRME/tif/SRME_PIMO_rast.tif")
-
-# extract
-extract_PIMO <- extract(SRME_PIMO_rast, SRME_PCUs, fun = median, na.rm=TRUE)
-str(extract_PIMO)
-# adjust
-extract_PIMO <- extract_PIMO %>% 
-  rename(PIMO_tons = Hosted_AGB_0119_2018_WESTERN_WHITE_PINE_05292023195343) %>% 
-  mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
-  select(-1)
 
 
 ### PIST ----
@@ -732,8 +746,8 @@ crs(PIST_projected) # EPSG 5070
 SRME_PIST_rast <- crop(PIST_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIST_rast, "./SRME/tif/SRME_PIST_rast.tif")
-SRME_PIST_rast <- rast("./SRME/tif/SRME_PIST_rast.tif")
+writeRaster(SRME_PIST_rast, "./SRME_S4F/.tif/SRME_PIST_rast.tif")
+SRME_PIST_rast <- rast("./SRME_S4F/.tif/SRME_PIST_rast.tif")
 
 # extract
 extract_PIST <- extract(SRME_PIST_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -741,30 +755,6 @@ str(extract_PIST)
 # adjust
 extract_PIST <- extract_PIST %>% 
   rename(PIST_tons = Hosted_AGB_0114_2018_SOUTHWESTERN_WHITE_PINE__05302023224529) %>% 
-  mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
-  select(-1)
-
-
-### PIAL ----
-# read 
-PIAL_BigMap <- rast("Hosted_AGB_0101_2018_WHITEBARK_PINE_06072023040351.tif")
-# project
-crs(PIAL_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
-PIAL_projected <- project(PIAL_BigMap, "EPSG:5070")
-crs(PIAL_projected) # EPSG 5070
-# crop & mask
-SRME_PIAL_rast <- crop(PIAL_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
-
-#### write & read ----
-writeRaster(SRME_PIAL_rast, "./SRME/tif/SRME_PIAL_rast.tif")
-SRME_PIAL_rast <- rast("./SRME/tif/SRME_PIAL_rast.tif")
-
-# extract
-extract_PIAL <- extract(SRME_PIAL_rast, SRME_PCUs, fun = median, na.rm=TRUE)
-str(extract_PIAL)
-# adjust
-extract_PIAL <- extract_PIAL %>% 
-  rename(PIAL_tons = Hosted_AGB_0101_2018_WHITEBARK_PINE_06072023040351) %>% 
   mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
   select(-1)
 
@@ -780,8 +770,8 @@ crs(PIAR_projected) # EPSG 5070
 SRME_PIAR_rast <- crop(PIAR_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIAR_rast, "./SRME/tif/SRME_PIAR_rast.tif")
-SRME_PIAR_rast <- rast("./SRME/tif/SRME_PIAR_rast.tif")
+writeRaster(SRME_PIAR_rast, "./SRME_S4F/.tif/SRME_PIAR_rast.tif")
+SRME_PIAR_rast <- rast("./SRME_S4F/.tif/SRME_PIAR_rast.tif")
 
 # extract
 extract_PIAR <- extract(SRME_PIAR_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -793,74 +783,26 @@ extract_PIAR <- extract_PIAR %>%
   select(-1)
 
 
-### PILO ----
+### PIED ----
 # read 
-PILO_BigMap <- rast("Hosted_AGB_0142_2018_GREAT_BASIN_BRISTLECONE_PINE_06142023120854.tif")
+PIED_BigMap <- rast("Hosted_AGB_0106_2018_COMMON_OR_TWO_NEEDLE_PINYON_08142023230307.tif")
 # project
-crs(PILO_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
-PILO_projected <- project(PILO_BigMap, "EPSG:5070")
-crs(PILO_projected) # EPSG 5070
+crs(PIED_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
+PIED_projected <- project(PIED_BigMap, "EPSG:5070")
+crs(PIED_projected) # EPSG 5070
 # crop & mask
-SRME_PILO_rast <- crop(PILO_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
+SRME_PIED_rast <- crop(PIED_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PILO_rast, "./SRME/tif/SRME_PILO_rast.tif")
-SRME_PILO_rast <- rast("./SRME/tif/SRME_PILO_rast.tif")
+writeRaster(SRME_PIED_rast, "./SRME_S4F/.tif/SRME_PIED_rast.tif")
+SRME_PIED_rast <- rast("./SRME_S4F/.tif/SRME_PIED_rast.tif")
 
 # extract
-extract_PILO <- extract(SRME_PILO_rast, SRME_PCUs, fun = median, na.rm=TRUE)
-str(extract_PILO)
+extract_PIED <- extract(SRME_PIED_rast, SRME_PCUs, fun = median, na.rm=TRUE)
+str(extract_PIED)
 # adjust
-extract_PILO <- extract_PILO %>% 
-  rename(PILO_tons = Hosted_AGB_0142_2018_GREAT_BASIN_BRISTLECONE_PINE_06142023120854) %>% 
-  mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
-  select(-1)
-
-
-### Pin1 ----
-# read 
-Pin1_BigMap <- rast("Hosted_AGB_0133_2018_SINGLELEAF_PINYON_08142023234111.tif")
-# project
-crs(Pin1_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
-Pin1_projected <- project(Pin1_BigMap, "EPSG:5070")
-crs(Pin1_projected) # EPSG 5070
-# crop & mask
-SRME_Pin1_rast <- crop(Pin1_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
-
-#### write & read ----
-writeRaster(SRME_Pin1_rast, "./SRME/tif/SRME_Pin1_rast.tif")
-SRME_Pin1_rast <- rast("./SRME/tif/SRME_Pin1_rast.tif")
-
-# extract
-extract_Pin1 <- extract(SRME_Pin1_rast, SRME_PCUs, fun = median, na.rm=TRUE)
-str(extract_Pin1)
-# adjust
-extract_Pin1 <- extract_Pin1 %>% 
-  rename(Pin1_tons = Hosted_AGB_0133_2018_SINGLELEAF_PINYON_08142023234111) %>% 
-  mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
-  select(-1)
-
-
-### Pin2 ----
-# read 
-Pin2_BigMap <- rast("Hosted_AGB_0106_2018_COMMON_OR_TWO_NEEDLE_PINYON_08142023230307.tif")
-# project
-crs(Pin2_BigMap) # EPSG 9001 - USA_Contiguous_Albers_Equal_Area_Conic_USGS_version
-Pin2_projected <- project(Pin2_BigMap, "EPSG:5070")
-crs(Pin2_projected) # EPSG 5070
-# crop & mask
-SRME_Pin2_rast <- crop(Pin2_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
-
-#### write & read ----
-writeRaster(SRME_Pin2_rast, "./SRME/tif/SRME_Pin2_rast.tif")
-SRME_Pin2_rast <- rast("./SRME/tif/SRME_Pin2_rast.tif")
-
-# extract
-extract_Pin2 <- extract(SRME_Pin2_rast, SRME_PCUs, fun = median, na.rm=TRUE)
-str(extract_Pin2)
-# adjust
-extract_Pin2 <- extract_Pin2 %>% 
-  rename(Pin2_tons = Hosted_AGB_0106_2018_COMMON_OR_TWO_NEEDLE_PINYON_08142023230307) %>% 
+extract_PIED <- extract_PIED %>% 
+  rename(PIED_tons = Hosted_AGB_0106_2018_COMMON_OR_TWO_NEEDLE_PINYON_08142023230307) %>% 
   mutate(PCU_ID = SRME_PCUs$PCU_ID) %>% 
   select(-1)
 
@@ -876,8 +818,8 @@ crs(PIEN_projected) # EPSG 5070
 SRME_PIEN_rast <- crop(PIEN_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIEN_rast, "./SRME/tif/SRME_PIEN_rast.tif")
-SRME_PIEN_rast <- rast("./SRME/tif/SRME_PIEN_rast.tif")
+writeRaster(SRME_PIEN_rast, "./SRME_S4F/.tif/SRME_PIEN_rast.tif")
+SRME_PIEN_rast <- rast("./SRME_S4F/.tif/SRME_PIEN_rast.tif")
 
 # extract
 extract_PIEN <- extract(SRME_PIEN_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -900,8 +842,8 @@ crs(PIPU_projected) # EPSG 5070
 SRME_PIPU_rast <- crop(PIPU_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PIPU_rast, "./SRME/tif/SRME_PIPU_rast.tif")
-SRME_PIPU_rast <- rast("./SRME/tif/SRME_PIPU_rast.tif")
+writeRaster(SRME_PIPU_rast, "./SRME_S4F/.tif/SRME_PIPU_rast.tif")
+SRME_PIPU_rast <- rast("./SRME_S4F/.tif/SRME_PIPU_rast.tif")
 
 # extract
 extract_PIPU <- extract(SRME_PIPU_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -925,8 +867,8 @@ crs(PSME_projected) # EPSG 5070
 SRME_PSME_rast <- crop(PSME_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_PSME_rast, "./SRME/tif/SRME_PSME_rast.tif")
-SRME_PSME_rast <- rast("./SRME/tif/SRME_PSME_rast.tif")
+writeRaster(SRME_PSME_rast, "./SRME_S4F/.tif/SRME_PSME_rast.tif")
+SRME_PSME_rast <- rast("./SRME_S4F/.tif/SRME_PSME_rast.tif")
 
 # extract
 extract_PSME <- extract(SRME_PSME_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -949,8 +891,8 @@ crs(ABCO_projected) # EPSG 5070
 SRME_ABCO_rast <- crop(ABCO_projected, SRME_NFs_vect, mask=TRUE, touches=TRUE)
 
 #### write & read ----
-writeRaster(SRME_ABCO_rast, "./SRME/tif/SRME_ABCO_rast.tif")
-SRME_ABCO_rast <- rast("./SRME/tif/SRME_ABCO_rast.tif")
+writeRaster(SRME_ABCO_rast, "./SRME_S4F/.tif/SRME_ABCO_rast.tif")
+SRME_ABCO_rast <- rast("./SRME_S4F/.tif/SRME_ABCO_rast.tif")
 
 # extract
 extract_ABCO <- extract(SRME_ABCO_rast, SRME_PCUs, fun = median, na.rm=TRUE)
@@ -964,7 +906,7 @@ extract_ABCO <- extract_ABCO %>%
 
 
 # (4) combine & divide ----
-SRME_PCUs # has PCU_ID, area_acres, seedlot_A, seedlot_B, FORESTNAME, DISTRICTNA, seed_zone
+SRME_PCUs # has PCU_ID, area_acres, seedlot_A, seedlot_B, seedlot_C, FORESTNAME, DISTRICTNA, seed_zone
 # we added these one at a time (because they came from SpatVectors)
 
 # now add the others
@@ -973,18 +915,15 @@ match_join_df <- Elv_med_df %>%
   left_join(extract_QMD, by = "PCU_ID") %>% 
   left_join(extract_slope, by = "PCU_ID") %>% 
   left_join(extract_road_dist, by = "PCU_ID") %>% 
+  left_join(extract_MCMT, by = "PCU_ID") %>% 
   left_join(extract_CFP, by = "PCU_ID") %>% 
   left_join(extract_BA, by = "PCU_ID") %>% 
   left_join(extract_PIPO, by = "PCU_ID") %>% 
   left_join(extract_PICO, by = "PCU_ID") %>% 
   left_join(extract_PIFL, by = "PCU_ID") %>% 
-  left_join(extract_PIMO, by = "PCU_ID") %>% 
   left_join(extract_PIST, by = "PCU_ID") %>% 
-  left_join(extract_PIAL, by = "PCU_ID") %>% 
   left_join(extract_PIAR, by = "PCU_ID") %>% 
-  left_join(extract_PILO, by = "PCU_ID") %>% 
-  left_join(extract_Pin1, by = "PCU_ID") %>% 
-  left_join(extract_Pin2, by = "PCU_ID") %>% 
+  left_join(extract_PIED, by = "PCU_ID") %>% 
   left_join(extract_PIEN, by = "PCU_ID") %>% 
   left_join(extract_PIPU, by = "PCU_ID") %>% 
   left_join(extract_PSME, by = "PCU_ID") %>% 
@@ -994,12 +933,15 @@ match_join_df <- Elv_med_df %>%
 SRME_PCUs_vect <- SRME_PCUs %>% 
   left_join(match_join_df, by = "PCU_ID")
 
-SRME_PCUs_df <- as.data.frame(SRME_PCUs_vect)
+SRME_PCUs_vect_df <- as.data.frame(SRME_PCUs_vect)
 
 ## write & read ----
-write.csv(SRME_PCUs_df, "SRME_PCUs_df.csv", row.names = FALSE)
-writeVector(SRME_PCUs_vect, "SRME_PCUs_vect.shp")
-SRME_PCUs_vect <- vect("SRME_PCUs_vect.shp")
+write.csv(SRME_PCUs_df, "./SRME_S4F/.shp/SRME_PCUs_df.csv", row.names = FALSE)
+writeVector(SRME_PCUs_vect, "./SRME_S4F/.shp/SRME_PCUs_vect.shp")
+SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
+
+# ** not finished ----
+# want to wait until after pub / starting to share with managers
 
 ## divide ----
 # we want to have a separate .shp for each NF to share with managers 
