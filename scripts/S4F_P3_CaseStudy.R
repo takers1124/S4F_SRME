@@ -319,15 +319,42 @@ PPU_MCMT_df <- ref_MCMT_df %>%
   left_join(ssp5_MCMT_df, by = "PPU_ID")
 str(PPU_MCMT_df)
   
+
+# Create long table with explicit period labels and a single MCMT column
+PPU_long <- PPU_MCMT_df %>%
+  pivot_longer(
+    cols = c(ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT),
+    names_to = "clim",
+    values_to = "PPU_MCMT"
+  ) %>%
+  mutate(clim = factor(clim, levels = c("ref_MCMT", "curr_MCMT", "ssp2_MCMT", "ssp5_MCMT")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# (4) messy ----
+
 # merge with previous PPU spatvector, to have previous attributes
-CS_PPUs_vect <- CaseStudy_PPUs_vect %>% 
-  left_join(PPU_MCMT_df, by = "PPU_ID")
-
-CS_PPUs_df <- as.data.frame(CS_PPUs_vect)
-str(CS_PPUs_df)
-
-## write & read ----
-write.csv(CS_PPUs_df, "./CaseStudy_S4F/PPUs_shp/CS_PPUs_df.csv", row.names = FALSE)
+# CS_PPUs_vect <- CaseStudy_PPUs_vect %>% 
+#   left_join(PPU_MCMT_df, by = "PPU_ID")
+# 
+# CS_PPUs_df <- as.data.frame(CS_PPUs_vect)
+# str(CS_PPUs_df)
+# 
+# ## write & read ----
+# write.csv(CS_PPUs_df, "./CaseStudy_S4F/PPUs_shp/CS_PPUs_df.csv", row.names = FALSE)
 # writeVector(CS_PPUs_vect, "./CaseStudy_S4F/PPUs_shp/CS_PPUs_vect.shp")
 # CS_PPUs_vect <- vect("./CaseStudy_S4F/PPUs_shp/CS_PPUs_vect.shp")
 
@@ -347,6 +374,9 @@ write.csv(CS_PPUs_df, "./CaseStudy_S4F/PPUs_shp/CS_PPUs_df.csv", row.names = FAL
 # for PCUs, the median MCMT is only for the reference period (1961-1990) - representing conditions which parent trees of collected seed evolved under
 # for PPUs, we use median MCMT for all 4 periods/scenarios (see above) - representing different possible conditions at the planting site 
 
+
+## vectorized approach ----
+
 library(dplyr)
 library(tidyr)
 library(purrr)
@@ -356,9 +386,11 @@ tol <- 0.6
 
 # --- Build a single long PPU table with period labels ---
 # If area_acres and Elv_med_ft exist only in one PPU df, take them from ref_MCMT_PPU_df.
-PPU_meta <- ref_MCMT_PPU_df %>%
+
+PPU_meta <- as.data.frame(CaseStudy_PPUs_vect) %>%
   select(PPU_ID, area_acres, Elv_med_ft) %>%
   distinct()
+
 
 PPU_long <- list(
   ref  = ref_MCMT_PPU_df,
@@ -419,6 +451,97 @@ lookup_df %>%
 
 
 
+
+## function approach ----
+
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+### 1) MCMT extraction for PPUs ----
+
+# Helper to run terra::extract and return a minimal table
+extract_mcmt <- function(rast_obj, ppu_vect, period_label) {
+  out <- terra::extract(rast_obj, ppu_vect, fun = median, na.rm = TRUE)
+  # 'out' typically has an ID column first; you were removing that with select(-1)
+  # We'll recreate minimal structure: PPU_ID + PPU_median + clim
+  tibble(
+    PPU_ID    = ppu_vect$PPU_ID,
+    PPU_median = out[[2]],   # adjust if the second column is not the MCMT; 
+    # sometimes it's the first after the ID—use str(out) to confirm
+    clim      = period_label
+  )
+}
+
+# Run for 4 periods (replace raster objects with yours)
+PPU_long <- list(
+  ref  = extract_mcmt(ref_ARNF_rast,  CaseStudy_PPUs_vect, "ref"),
+  curr = extract_mcmt(curr_ARNF_rast, CaseStudy_PPUs_vect, "curr"),
+  ssp2 = extract_mcmt(ssp2_ARNF_rast, CaseStudy_PPUs_vect, "ssp2"),
+  ssp5 = extract_mcmt(ssp5_ARNF_rast, CaseStudy_PPUs_vect, "ssp5")
+) %>%
+  bind_rows() %>%
+  transmute(PPU_ID, clim = factor(clim, levels = c("ref","curr","ssp2","ssp5")),
+            PPU_MCMT = PPU_median)
+
+
+
+### 3) PCU extraction (ref only) ----
+
+# extract
+ref_MCMT_PCU_df <- extract(ref_ARNF_rast, ARNF_PCUs_vect, fun = median, na.rm = TRUE)
+str(ref_MCMT_PCU_df)
+# adjust
+ref_MCMT_PCU_df <- ref_MCMT_PCU_df %>% 
+  rename(PCU_median = "bigfile[, varname]") %>% # this may need to be changed 
+  mutate(PCU_ID = ARNF_PCUs_vect$PCU_ID) %>% 
+  select(-1)
+
+# If you already have this as ref_MCMT_PCU_df with PCU_ID and PCU_median:
+
+PCU_min <- ref_MCMT_PCU_df %>%
+  transmute(PCU_ID, PCU_MCMT = PCU_median)
+
+
+### 4) Lookup + Summary (vectorized) ----
+tol <- 0.6
+
+lookup_df <- tidyr::crossing(
+  PPU_long %>% select(PPU_ID, clim, PPU_MCMT),
+  PCU_min     %>% select(PCU_ID, PCU_MCMT)
+) %>%
+  mutate(match = as.integer(abs(PPU_MCMT - PCU_MCMT) <= tol)) %>%
+  select(PPU_ID, PCU_ID, clim, match)
+
+
+### Metadata for PPUs
+PPU_meta <- as.data.frame(CaseStudy_PPUs_vect) %>%
+  select(PPU_ID, area_acres, Elv_med_ft) %>%
+  distinct()
+
+
+match_summary <- lookup_df %>%
+  group_by(PPU_ID, clim) %>%
+  summarise(n_PCUs = sum(match), .groups = "drop") %>%
+  pivot_wider(names_from = clim, values_from = n_PCUs, values_fill = 0) %>%
+  left_join(PPU_meta, by = "PPU_ID") %>%
+  select(PPU_ID, area_acres, Elv_med_ft, ref, curr, ssp2, ssp5)
+
+# Optional checks
+nrow(lookup_df)              # expect 18 * 4148 * 4 if your counts are unchanged
+lookup_df %>% 
+  filter(PPU_ID == 7, clim == "ref", match == 1) %>% 
+  nrow()                     # should match your 1250 validation
+
+# Check PPU_long content
+PPU_long %>% count(clim)                 # expect 18 per period (your PPU count)
+PPU_long %>% group_by(clim) %>% summarise(range(PPU_MCMT))
+
+# Check lookup row count
+nrow(lookup_df)                          # expect 18 * 4148 * 4 = 298,656
+
+# Reproduce your validation
+lookup_df %>% filter(PPU_ID == 7, clim == "ref", match == 1) %>% nrow()
   
 
 
