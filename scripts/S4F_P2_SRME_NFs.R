@@ -940,6 +940,13 @@ write.csv(SRME_PCUs_df, "./SRME_S4F/.shp/SRME_PCUs_df.csv", row.names = FALSE)
 writeVector(SRME_PCUs_vect, "./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 
+
+
+
+
+
+
+
 # ** not finished ----
 # want to wait until after pub / starting to share with managers
 
@@ -950,7 +957,12 @@ SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 ARNF_PCUs_vect <- SRME_PCUs_vect %>% 
   filter(startsWith(PCU_ID, "ARNF"))
 
-writeVector(ARNF_PCUs_vect, "ARNF_PCUs_vect.shp")
+ARNF_PCUs_df <- as.data.frame(ARNF_PCUs_vect)
+str(ARNF_PCUs_df)
+
+write.csv(CS_PPUs_df, "./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_df.csv", row.names = FALSE)
+
+writeVector(ARNF_PCUs_vect, "./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_vect.shp")
 ARNF_PCUs_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_vect.shp")
 
 # CNF
