@@ -489,7 +489,7 @@ patch_all_polys$patch_acres <- expanse(patch_all_polys) * 0.000247105
 # filter out small poys (< 20 acres)
 small_polys_removed <- patch_all_polys[patch_all_polys$patch_acres >= 20, ]
 # 1456 geoms remain
-(1456/134187)*100 # 1.085053 % of polys remain (are >= 20 acres)
+(1456/96600)*100 # 1.507246 % of polys remain (are >= 20 acres)
 # so ~99 % of patches/polys were < 20 acres (isolated areas)
 # but many of these remaining polys are quite large and need to be divided
 

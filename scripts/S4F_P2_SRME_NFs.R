@@ -1,6 +1,6 @@
 # Seeds 4 the Future - Prioritizing cone collection for future-focused reforestation 
 
-# Part 1B: adding attributes to Potential Collection Units (PCUs)
+# Part 2: adding attributes to Potential Collection Units (PCUs)
 
 # (1) setup ----
 
@@ -500,7 +500,7 @@ SRME_PCUs$DISTRICTNA <- RD_at_centroid$DISTRICTNA
 # note, the USFS is currently working on updating these seed zones
 
 SZ_all <- vect("HistoricalTreeSeedZones.shp")
-crs(SZ_all) # EPSG: 882
+crs(ranger_districts) # EPSG:4269
 SZ_all_projected <- project(SZ_all, "EPSG:5070")
 
 # extract
