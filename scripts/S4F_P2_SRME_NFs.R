@@ -933,14 +933,14 @@ match_join_df <- Elv_med_df %>%
 SRME_PCUs_vect <- SRME_PCUs %>% 
   left_join(match_join_df, by = "PCU_ID")
 
-SRME_PCUs_vect_df <- as.data.frame(SRME_PCUs_vect)
+SRME_PCUs_df <- as.data.frame(SRME_PCUs_vect)
+str(SRME_PCUs_df)
+
 
 ## write & read ----
 write.csv(SRME_PCUs_df, "./SRME_S4F/.shp/SRME_PCUs_df.csv", row.names = FALSE)
 writeVector(SRME_PCUs_vect, "./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
-
-
 
 
 
