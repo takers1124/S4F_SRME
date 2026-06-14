@@ -133,8 +133,8 @@ CP_PPUs_vect <- CP_PPUs_vect %>%
   left_join(Elv_med_df, by = "PPU_ID")
 
 ### write & read ----
-writeVector(CP_PPUs_vect, "./CaseStudy_S4F/PPUs_shp/CP_PPUs_vect.shp")
-CP_PPUs_vect <- vect("./CaseStudy_S4F/PPUs_shp/CP_PPUs_vect.shp")
+writeVector(CP_PPUs_vect, "./CaseStudy_S4F/PPUs/CP_PPUs_vect.shp")
+CP_PPUs_vect <- vect("./CaseStudy_S4F/PPUs/CP_PPUs_vect.shp")
 
 
 ## filter ----
@@ -156,8 +156,8 @@ CaseStudy_PPUs_vect <- CP_PPUs_vect %>%
 sum(CaseStudy_PPUs_vect$area_acres) # 2272.514 acres
 
 ### write & read ----
-writeVector(CaseStudy_PPUs_vect, "./CaseStudy_S4F/PPUs_shp/CaseStudy_PPUs_vect.shp")
-CaseStudy_PPUs_vect <- vect("./CaseStudy_S4F/PPUs_shp/CaseStudy_PPUs_vect.shp")
+writeVector(CaseStudy_PPUs_vect, "./CaseStudy_S4F/PPUs/CaseStudy_PPUs_vect.shp")
+CaseStudy_PPUs_vect <- vect("./CaseStudy_S4F/PPUs/CaseStudy_PPUs_vect.shp")
 
 
 
@@ -322,6 +322,7 @@ str(PPU_MCMT_df)
 
 
 # (4) match clims ----
+
 ## (A) Pivot PPU MCMT to long format ---- 
 PPU_MCMT_long <- PPU_MCMT_df %>% 
   select(PPU_ID, ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT) %>% 
@@ -329,53 +330,66 @@ PPU_MCMT_long <- PPU_MCMT_df %>%
                 names_to = "climate_period", values_to = "PPU_MCMT" ) %>% 
   # clean up period labels 
   mutate(climate_period = recode(climate_period, 
-                                 "ref_MCMT" = "ref_1961-1990", 
-                                 "curr_MCMT" = "curr_2011-2040", 
-                                 "ssp2_MCMT" = "ssp2_2041-2070", 
-                                 "ssp5_MCMT" = "ssp5_2041-2070" )) 
-
+                                 "ref_MCMT" = "ref_1961_1990", 
+                                 "curr_MCMT" = "curr_2011_2040", 
+                                 "ssp2_MCMT" = "ssp2_2041_2070", 
+                                 "ssp5_MCMT" = "ssp5_2041_2070" )) 
 # check 
 str(PPU_MCMT_long) 
   # expect: 72 rows (18 PPUs x 4 periods), 3 columns 
 
 ## (B) Cross join with PCU MCMT only ---- 
   # PCUs were created in part 1, and attributes were added in part 2
+  # there are 46179 total PCUs across all 10 NFs in the SRME
 
+### read ----
 SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 SRME_PCUs_df <- as.data.frame(SRME_PCUs_vect)
 
 
-PCU_MCMT_slim <- SRME_PCUs_df %>% 
+PCU_MCMT_df <- SRME_PCUs_df %>% 
   select(PCU_ID, MCMT_C) %>% 
   rename(PCU_MCMT = MCMT_C)
 
-str(PCU_MCMT_slim)
+str(PCU_MCMT_df)
 
 # match PCUs with PPUs  
-match_table_raw <- PPU_MCMT_long %>% 
-  cross_join(PCU_MCMT_slim) 
+match_full_df <- PPU_MCMT_long %>% 
+  cross_join(PCU_MCMT_df) 
 
 # check 
-nrow(match_table_raw) 
-  # expect: ~3.3 million rows (72 x 46179) 
+nrow(match_full_df) 
+  # 3324888 rows (18 PPUs x 4 periods x 46179 PCUs) 
+
 
 ## (C) Calculate MCMT difference and filter to matches ---- 
+
+# this is a long-format match table (relational lookup)
+  # and would serve as the backend for a future tool 
+  # it would be created fresh for any case study PPUs
+# it only includes PCUs that are a match for the case study PPUs
+
+# establish match tolerance
+  # we are considering MCMT values within +/- 0.6C to be a match
+  # see paper for details
+  # this tolerance would be adjusted in a tool
 MCMT_tolerance <- 0.6 
 
-match_table_B <- match_table_raw %>% 
+match_filt_df <- match_full_df %>% 
   mutate(MCMT_diff = PCU_MCMT - PPU_MCMT) %>% 
   filter(abs(MCMT_diff) <= MCMT_tolerance) %>% 
   select(PPU_ID, PCU_ID, climate_period, PPU_MCMT, PCU_MCMT, MCMT_diff) %>% 
   arrange(PPU_ID, climate_period, PCU_ID) 
 
 # check 
-str(match_table_B) 
-nrow(match_table_B)
-  # expect: ~ 370 k rows
+str(match_filt_df) 
+nrow(match_filt_df)
+  # 373800 rows
   # much less bc only keeping matches
+(373800/3324888)*100 # 11.24248% of PCUs across SRME are matches for the case study PPUs
 
-# quick summary: match counts per PPU per climate period
-match_summary <- match_table_B %>%
+# quick summary: match counts per PPU per climate period (# matching PCUs)
+match_summary <- match_filt_df %>%
   group_by(PPU_ID, climate_period) %>%
   summarise(n_matches = n(), .groups = "drop") %>%
   pivot_wider(names_from = climate_period, values_from = n_matches) %>%
@@ -383,10 +397,20 @@ match_summary <- match_table_B %>%
 
 print(match_summary)
 
+
+
 # (5) make tables for paper ----
-## (A) summary table ----
+
+## (A) PPU table ----
+
+# to be included in paper body
+# this table will show a summary of median extracted MCMT values for each PPU
+  # and also the number of matching PCUs for each PPU
+
 # in addition to climate-match, the case study is also concerned about target species and fire risk
-  # we will further filter the PCUs that are ssp2_2041-2070 matches
+  # we will further filter the PCUs that are ssp2_2041-2070 matches by these additional priorities
+    # these priorities would be adjustable in a tool
+  # this is a final column for the table, showing the number of PCUs that remain for each PPU after all 3 filters
 
 # check if have NaN
 sum(is.nan(SRME_PCUs_df$PIPO_tons))
@@ -403,99 +427,149 @@ PCU_attrs <- SRME_PCUs_df %>%
   select(PCU_ID, PIPO_tons, CFP_prob)
 
 # build filtered match count (ssp2 + PIPO + CFP)
-ssp2_filtered_summary <- match_table_B %>%
-  filter(climate_period == "ssp2_2041-2070") %>%
+ssp2_PIPO_CFP_filter <- match_filt_df %>%
+  filter(climate_period == "ssp2_2041_2070") %>%
   left_join(PCU_attrs, by = "PCU_ID") %>%
-  filter(PIPO_tons >= 10,
-         CFP_prob >= 0.5) %>%
+  filter(PIPO_tons >= 10,                 # PCU has at least 10 tons/acre of PIPO biomass
+         CFP_prob >= 0.5) %>%             # PCU is at least 50% probable to have a crown fire, if a fire were to occur in it (high risk)
   group_by(PPU_ID) %>%
   summarise(n_ssp2_PIPO_CFP = n(), .groups = "drop")
 
-str(ssp2_filtered_summary)
+str(ssp2_PIPO_CFP_filter)
 
 # join PPU MCMT values for each period
 PPU_MCMT_wide <- PPU_MCMT_df %>%
   select(PPU_ID, ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT)
 
 # assemble full summary table
-summary_table_C <- match_summary %>%
-  left_join(ssp2_filtered_summary, by = "PPU_ID") %>%
+PPU_summary_df <- match_summary %>%
+  left_join(ssp2_PIPO_CFP_filter, by = "PPU_ID") %>%
   left_join(PPU_MCMT_wide, by = "PPU_ID") %>%
   select(PPU_ID,
-         ref_MCMT, `ref_1961-1990`,
-         curr_MCMT, `curr_2011-2040`,
-         ssp2_MCMT, `ssp2_2041-2070`,
-         ssp5_MCMT, `ssp5_2041-2070`,
+         ref_MCMT, `ref_1961_1990`,
+         curr_MCMT, `curr_2011_2040`,
+         ssp2_MCMT, `ssp2_2041_2070`,
+         ssp5_MCMT, `ssp5_2041_2070`,
          n_ssp2_PIPO_CFP) %>%
   rename(
-    n_ref  = `ref_1961-1990`,
-    n_curr = `curr_2011-2040`,
-    n_ssp2 = `ssp2_2041-2070`,
-    n_ssp5 = `ssp5_2041-2070`
+    n_ref  = `ref_1961_1990`,
+    n_curr = `curr_2011_2040`,
+    n_ssp2 = `ssp2_2041_2070`,
+    n_ssp5 = `ssp5_2041_2070`
   ) %>%
   arrange(PPU_ID)
 
-print(summary_table_C)
+print(PPU_summary_df)
 
-## (B) universal PCU? ----
+### write & read ----
+write.csv(PPU_summary_df, "./CaseStudy_S4F/PPUs/PPU_summary_df.csv", row.names = FALSE)
+PPU_summary_df   <- read.csv("./CaseStudy_S4F/PPUs/PPU_summary_df.csv", check.names = FALSE)
+
+
+## (B) PCU table ----
+
+# this table/ SpatVector will serve as an intermediate product to show the utility of the relational lookup table
+  # bc the relational lookup table is too large (>3 million rows) to show in the paper/ dataset 
+
+# it will be 1) in the supplemental .csv as a tab, and 2) attached as an attribute table to a PCU SpatVector/ shapefile 
+  
+# it has 8 added match columns for the Case Study (CS) PPUs (in addition to the attributes created in Part 2)
+  # 1 column with the number of matching PPUs for each clim period/scenario
+  # 1 column with a list of matching PPUs for each clim period/scenario
+    # ref, curr, ssp2, and ssp5
+  
+
+# build count and list summaries from match_filt_df
+PCU_match_wide <- match_filt_df %>%
+  group_by(PCU_ID, climate_period) %>%
+  summarise(
+    n_match  = n_distinct(PPU_ID),
+    PPU_list = paste(sort(unique(PPU_ID)), collapse = ", "),
+    .groups  = "drop"
+  ) %>%
+  pivot_wider(
+    names_from  = climate_period,
+    values_from = c(n_match, PPU_list),
+    names_glue  = "{climate_period}_{.value}"
+  ) %>%
+  rename(
+    ref_match  = ref_1961_1990_n_match,
+    ref_list   = ref_1961_1990_PPU_list,
+    curr_match = curr_2011_2040_n_match,
+    curr_list  = curr_2011_2040_PPU_list,
+    ssp2_match = ssp2_2041_2070_n_match,
+    ssp2_list  = ssp2_2041_2070_PPU_list,
+    ssp5_match = ssp5_2041_2070_n_match,
+    ssp5_list  = ssp5_2041_2070_PPU_list
+  ) %>%
+  # replace NAs with 0 for count columns only
+  mutate(across(ends_with("_match"), ~ replace_na(., 0))) %>% 
+  select(PCU_ID, ref_match, ref_list, curr_match, curr_list, 
+         ssp2_match, ssp2_list, ssp5_match, ssp5_list)
+
+
+
+### join back to full PCU dataframe ----
+SRME_PCUs_CS_df <- SRME_PCUs_df %>%
+  left_join(PCU_match_wide, by = "PCU_ID")
+
+# check
+str(SRME_PCUs_CS_df)
+nrow(SRME_PCUs_CS_df) 
+  # should still be 46179
+
+
+#### write & read ----
+write.csv(SRME_PCUs_CS_df, "./CaseStudy_S4F/PCUs/SRME_PCUs_CS_df.csv", row.names = FALSE)
+SRME_PCUs_CS_df <- read.csv("SRME_PCUs_CS_df.csv", check.names = FALSE)
+
+
+### join back to full PCU SpatVector ----
+# select only new cols and ID
+PCU_matches <- SRME_PCUs_CS_df %>% 
+  select(PCU_ID, ref_match, ref_list, curr_match, curr_list, 
+         ssp2_match, ssp2_list, ssp5_match, ssp5_list)
+
+SRME_PCUs_CS_vect <- SRME_PCUs_vect %>% 
+  left_join(PCU_matches, by = "PCU_ID")
+
+# check
+PCU_matches_df <- as.data.frame(SRME_PCUs_CS_vect)
+str(PCU_matches_df)
+
+
+#### write & read ----
+writeVector(SRME_PCUs_CS_vect, "./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
+SRME_PCUs_CS_vect <- vect("./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
+
+
+
+## (C) universal PCU? ----
 
 # find PCUs that match ALL 18 PPUs under ssp2
-universal_ssp2 <- match_table_B %>%
-  filter(climate_period == "ssp2_2041-2070") %>%
+universal_ssp2 <- match_filt_df %>%
+  filter(climate_period == "ssp2_2041_2070") %>%
   group_by(PCU_ID) %>%
   summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
   filter(n_PPUs_matched == 18) %>%
   arrange(PCU_ID)
 
-cat("Number of PCUs matching all 18 PPUs under ssp2:", nrow(universal_ssp2), "\n")
-  # 0 !!!!!!!!!! see notes for interpretation 
-print(universal_ssp2)
+nrow(universal_ssp2)
+# 0 !!!!!!!!!! see notes for interpretation 
 
-# of those, which also meet PIPO and CFP thresholds
+# if there were any "universal matches", which would also meet PIPO and CFP thresholds?
 universal_ssp2_filtered <- universal_ssp2 %>%
   left_join(PCU_attrs, by = "PCU_ID") %>%
   filter(PIPO_tons >= 10,
          CFP_prob >= 0.5)
 
-cat("Number meeting all 18 PPU matches + PIPO + CFP thresholds:", nrow(universal_ssp2_filtered), "\n")
-print(universal_ssp2_filtered)
+nrow(universal_ssp2_filtered)
 
-## (C) PCU table with added matches ----
 
-# build count and list summaries from match_table_B
-PCU_match_wide <- match_table_B %>%
-  group_by(PCU_ID, climate_period) %>%
-  summarise(
-    n_PPU_match = n_distinct(PPU_ID),
-    PPU_list    = paste(sort(unique(PPU_ID)), collapse = ", "),
-    .groups     = "drop"
-  ) %>%
-  pivot_wider(
-    names_from  = climate_period,
-    values_from = c(n_PPU_match, PPU_list),
-    names_glue  = "{.value}_{climate_period}"
-  ) %>%
-  # replace NAs (PCUs with no matches in a period) with 0 for counts
-  mutate(across(starts_with("n_PPU_match"), ~ replace_na(., 0)))
 
-# join back to full PCU dataframe
-SRME_PCUs_df_optA <- SRME_PCUs_df %>%
-  left_join(PCU_match_wide, by = "PCU_ID")
 
-# check
-str(SRME_PCUs_df_optA)
-nrow(SRME_PCUs_df_optA) 
-  # should still be 46179
-  # if export, export as geodatabase, not shapefile for quiring in Arc
 
-### write & read ----
-write.csv(SRME_PCUs_df_optA, "./CaseStudy_S4F/PCUs_shp/SRME_PCUs_optA.csv", row.names = FALSE)
-write.csv(match_table_B, "./CaseStudy_S4F/PCUs_shp/match_table_B.csv", row.names = FALSE)
-write.csv(summary_table_C, "./CaseStudy_S4F/PCUs_shp/summary_table_C.csv", row.names = FALSE)
 
-SRME_PCUs_df_optA <- read.csv("SRME_PCUs_optA.csv", check.names = FALSE)
-match_table_B     <- read.csv("match_table_B.csv", check.names = FALSE)
-summary_table_C   <- read.csv("summary_table_C.csv", check.names = FALSE)
 
 
 
