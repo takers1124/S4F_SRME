@@ -161,6 +161,28 @@ CaseStudy_PPUs_vect <- vect("./CaseStudy_S4F/PPUs/CaseStudy_PPUs_vect.shp")
 
 
 
+
+
+# temp code ----
+# try diff pairings 
+
+CaseStudy_PPUs <- c("7", "15", "225", "232", "239", "281", "282", "283", "286", 
+                    "287", "288", "356", "357", "359") 
+  # choosing 14 units that are geographically near each other (for visual & operational reasons)
+  # and also that have a median extracted MCMT value for mid-century ssp2
+    # that ranges by less than +/- 0.6 (our match tolerance)
+
+CaseStudy_PPUs_vect <- CP_PPUs_vect %>% 
+  filter(PPU_ID %in% CaseStudy_PPUs)
+# 14 geoms
+
+sum(CaseStudy_PPUs_vect$area_acres) # 1782.683 acres
+
+
+
+
+
+
 # (3) add climate data ----
 # data from ClimateNA
 
@@ -323,7 +345,8 @@ str(PPU_MCMT_df)
 
 # (4) match clims ----
 
-## (A) Pivot PPU MCMT to long format ---- 
+## (A) pivot  ---- 
+  # PPU MCMT to long format
 PPU_MCMT_long <- PPU_MCMT_df %>% 
   select(PPU_ID, ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT) %>% 
   pivot_longer( cols = c(ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT), 
@@ -336,9 +359,12 @@ PPU_MCMT_long <- PPU_MCMT_df %>%
                                  "ssp5_MCMT" = "ssp5_2041_2070" )) 
 # check 
 str(PPU_MCMT_long) 
-  # expect: 72 rows (18 PPUs x 4 periods), 3 columns 
+  # with 18 PCUs, expect: 72 rows (18 PPUs x 4 periods), 3 columns
+  # with 14 PCUs, expect: 53 rows (14 PPUs x 4 periods), 3 columns 
 
-## (B) Cross join with PCU MCMT only ---- 
+
+## (B) cross join  ---- 
+  # with PCU MCMT only
   # PCUs were created in part 1, and attributes were added in part 2
   # there are 46179 total PCUs across all 10 NFs in the SRME
 
@@ -359,10 +385,12 @@ match_full_df <- PPU_MCMT_long %>%
 
 # check 
 nrow(match_full_df) 
-  # 3324888 rows (18 PPUs x 4 periods x 46179 PCUs) 
+  # with 18 PCUs, expect 3324888 rows (18 PPUs x 4 periods x 46179 PCUs) 
+  # with 14 PCUs, expect 2586024 rows (14 PPUs x 4 periods x 46179 PCUs) 
 
 
-## (C) Calculate MCMT difference and filter to matches ---- 
+## (C) calculate MCMT difference ---- 
+  # and filter to matches
 
 # this is a long-format match table (relational lookup)
   # and would serve as the backend for a future tool 
@@ -384,7 +412,9 @@ match_filt_df <- match_full_df %>%
 # check 
 str(match_filt_df) 
 nrow(match_filt_df)
-  # 373800 rows
+  # with 18 PCUs, expect 373800 rows
+  # with 14 PCUs, expect 291695 rows
+
   # much less bc only keeping matches
 (373800/3324888)*100 # 11.24248% of PCUs across SRME are matches for the case study PPUs
 
@@ -551,11 +581,12 @@ universal_ssp2 <- match_filt_df %>%
   filter(climate_period == "ssp2_2041_2070") %>%
   group_by(PCU_ID) %>%
   summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
-  filter(n_PPUs_matched == 18) %>%
+  filter(n_PPUs_matched == 14) %>%
   arrange(PCU_ID)
 
 nrow(universal_ssp2)
-# 0 !!!!!!!!!! see notes for interpretation 
+  # with 18 PPUs, 0 !!!!!!!!!! see notes for interpretation 
+  # with 14 PPUs, 177 PCUs are universal matches! 
 
 # if there were any "universal matches", which would also meet PIPO and CFP thresholds?
 universal_ssp2_filtered <- universal_ssp2 %>%
@@ -564,6 +595,7 @@ universal_ssp2_filtered <- universal_ssp2 %>%
          CFP_prob >= 0.5)
 
 nrow(universal_ssp2_filtered)
+  # with 14 PPUs, 53 PCUs are universal matches AND meet our management objectives! 
 
 
 
