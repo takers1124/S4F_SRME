@@ -139,47 +139,30 @@ CP_PPUs_vect <- vect("./CaseStudy_S4F/PPUs/CP_PPUs_vect.shp")
 
 ## filter ----
 # for the case study, we are only going to use the planting needs (PPUs)
-# that are within the 9000 - 9500 ft EB
+  # that are within the 9000 - 9500 ft EB
 PPUs_9000_9500_vect <- CP_PPUs_vect %>% 
   filter(Elv_med_ft >= 9000, Elv_med_ft <= 9500)
-# 86 geoms
-# too many for the case study - pick a subset of spatially close polys
-# using Arc to visualize and choose (this is subjective)
+  # 86 geoms is too many for the case study
+  # choosing a subset that are geographically near each other (for visual & operational reasons)
+    # using Arc to visualize and choose (this is subjective)
+  # choosing 14 units that are 
+    # also climatically "near" each other
+    # they have a median extracted MCMT value for mid-century ssp2
+    # that ranges by less than +/- 0.6 (our match tolerance, an objective grouping method)
+    # using this threshold bc we want to generate list of "universal" PCUs (see Part 3-5C below)
 
-CaseStudy_PPUs <- c("223", "225", "232", "235", "239", "281", "282", "283", "286", "287", "288", # just 11
-                    "7", "14", "15", "356", "357", "359", "401") # 18
+CaseStudy_PPUs <- c("7", "15", "225", "232", "239", "281", "282", "283", "286", 
+                    "287", "288", "356", "357", "359") 
 
 CaseStudy_PPUs_vect <- CP_PPUs_vect %>% 
   filter(PPU_ID %in% CaseStudy_PPUs)
-# 18 geoms
+  # 14 geoms
 
-sum(CaseStudy_PPUs_vect$area_acres) # 2272.514 acres
+sum(CaseStudy_PPUs_vect$area_acres) # 1782.683 acres
 
 ### write & read ----
 writeVector(CaseStudy_PPUs_vect, "./CaseStudy_S4F/PPUs/CaseStudy_PPUs_vect.shp")
 CaseStudy_PPUs_vect <- vect("./CaseStudy_S4F/PPUs/CaseStudy_PPUs_vect.shp")
-
-
-
-
-
-# temp code ----
-# try diff pairings 
-
-CaseStudy_PPUs <- c("7", "15", "225", "232", "239", "281", "282", "283", "286", 
-                    "287", "288", "356", "357", "359") 
-  # choosing 14 units that are geographically near each other (for visual & operational reasons)
-  # and also that have a median extracted MCMT value for mid-century ssp2
-    # that ranges by less than +/- 0.6 (our match tolerance)
-
-CaseStudy_PPUs_vect <- CP_PPUs_vect %>% 
-  filter(PPU_ID %in% CaseStudy_PPUs)
-# 14 geoms
-
-sum(CaseStudy_PPUs_vect$area_acres) # 1782.683 acres
-
-
-
 
 
 
@@ -416,14 +399,14 @@ nrow(match_filt_df)
   # with 14 PCUs, expect 291695 rows
 
   # much less bc only keeping matches
-(373800/3324888)*100 # 11.24248% of PCUs across SRME are matches for the case study PPUs
+(291695/2586024)*100 # 11.27967% of PCUs across SRME are matches for the case study PPUs
 
 # quick summary: match counts per PPU per climate period (# matching PCUs)
 match_summary <- match_filt_df %>%
   group_by(PPU_ID, climate_period) %>%
   summarise(n_matches = n(), .groups = "drop") %>%
   pivot_wider(names_from = climate_period, values_from = n_matches) %>%
-  arrange(PPU_ID)
+  arrange(PPU_ID) %>% 
 
 print(match_summary)
 
@@ -492,8 +475,8 @@ PPU_summary_df <- match_summary %>%
 print(PPU_summary_df)
 
 ### write & read ----
-write.csv(PPU_summary_df, "./CaseStudy_S4F/PPUs/PPU_summary_df.csv", row.names = FALSE)
-PPU_summary_df   <- read.csv("./CaseStudy_S4F/PPUs/PPU_summary_df.csv", check.names = FALSE)
+write.csv(PPU_summary_df, "./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", row.names = FALSE)
+PPU_summary_df   <- read.csv("./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", check.names = FALSE)
 
 
 ## (B) PCU table ----
@@ -550,8 +533,8 @@ nrow(SRME_PCUs_CS_df)
 
 
 #### write & read ----
-write.csv(SRME_PCUs_CS_df, "./CaseStudy_S4F/PCUs/SRME_PCUs_CS_df.csv", row.names = FALSE)
-SRME_PCUs_CS_df <- read.csv("SRME_PCUs_CS_df.csv", check.names = FALSE)
+write.csv(SRME_PCUs_CS_df, "./CaseStudy_S4F/paper_tables/SRME_PCUs_CS_df.csv", row.names = FALSE)
+SRME_PCUs_CS_df <- read.csv("./CaseStudy_S4F/paper_tables/SRME_PCUs_CS_df.csv", check.names = FALSE)
 
 
 ### join back to full PCU SpatVector ----
@@ -574,7 +557,7 @@ SRME_PCUs_CS_vect <- vect("./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
 
 
 
-## (C) universal PCU? ----
+## (C) universal PCUs ----
 
 # find PCUs that match ALL 18 PPUs under ssp2
 universal_ssp2 <- match_filt_df %>%
@@ -598,7 +581,7 @@ nrow(universal_ssp2_filtered)
   # with 14 PPUs, 53 PCUs are universal matches AND meet our management objectives! 
 
 
-
+## (D) match figure ----
 
 
 
