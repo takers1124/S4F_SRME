@@ -7,6 +7,7 @@
 library(terra) 
 library(tidyterra) 
 library(dplyr)
+library(ggplot2)
 
 # (2) make PPU polygons ----
 # we create Potential Planting Units (PPUs)
@@ -326,7 +327,8 @@ str(PPU_MCMT_df)
   
 
 
-# (4) match clims ----
+# (4) match clims with PCUs ----
+
 
 ## (A) prep PPUs  ---- 
   # PPU MCMT to long format
@@ -358,46 +360,32 @@ str(SRME_PCUs_df)
 
 ### adjust ----
 
-PCU_df <- SRME_PCUs_df %>% 
-  select(PCU_ID, MCMT_C, PIPO_tons, CFP_prob, seedlot_A, seedlot_B) %>% 
-  rename(PCU_MCMT = MCMT_C)
-
-str(PCU_df)
-
-
+# treat NaN as 0 for PIPO_tons (biologically: no ponderosa detected)
 # check if have NaN
-sum(is.nan(PCU_df$PIPO_tons))
+sum(is.nan(SRME_PCUs_df$PIPO_tons))
 # 614
-sum(is.nan(PCU_df$CFP_prob))
+sum(is.nan(SRME_PCUs_df$CFP_prob))
 #0
 
 # treat NaN as 0 for PIPO_tons before filtering
-PCU_df <- PCU_df %>%
+SRME_PCUs_df <- SRME_PCUs_df %>%
   mutate(PIPO_tons = ifelse(is.nan(PIPO_tons), 0, PIPO_tons))
 
-# pull relevant PCU attributes for filtered column
-PCU_attrs <- PCU_df %>%
+# pull relevant PCU attributes for filtered column (5-B)
+PCU_attrs <- SRME_PCUs_df %>%
   select(PCU_ID, PIPO_tons, CFP_prob, seedlot_A, seedlot_B)
 
-# build filtered match count (ssp2 + PIPO + CFP)
-PPU_n_filt3 <- match_filt_df %>%
-  filter(climate_period == "ssp2_2041_2070") %>%
-  left_join(PCU_attrs, by = "PCU_ID") %>%
-  filter(PIPO_tons >= 10,                 # PCU has at least 10 tons/acre of PIPO biomass
-         CFP_prob >= 0.5,
-         seedlot_A = NA, 
-         seedlot_B = NA) %>%             # PCU is at least 50% probable to have a crown fire, if a fire were to occur in it (high risk)
-  group_by(PPU_ID) %>%
-  summarise(n_filt3 = n(), .groups = "drop")
+# pull MCMT for cross-join (4-C)
+PCU_MCMT_df <- SRME_PCUs_df %>% 
+  select(PCU_ID, MCMT_C) %>% 
+  rename(PCU_MCMT = MCMT_C)
 
-str(PPU_n_filt3)
+str(PCU_MCMT_df)
 
 
-
-
-### cross join ----  
+## (C) cross join ----  
 match_full_df <- PPU_MCMT_long %>% 
-  cross_join(PCU_df) 
+  cross_join(PCU_MCMT_df) 
 
 # check 
 nrow(match_full_df) 
@@ -405,15 +393,13 @@ nrow(match_full_df)
 # with 14 PCUs, expect 2586024 rows (14 PPUs x 4 periods x 46179 PCUs) 
 
 
-
-
-## (C) calculate MCMT difference ---- 
+## (D) calculate MCMT difference ---- 
   # and filter to matches
 
 # this is a long-format match table (relational lookup)
   # and would serve as the backend for a future tool 
   # it would be created fresh for any case study PPUs
-# it only includes PCUs that are a match for the case study PPUs
+  # it only includes PCUs that are a match for the case study PPUs
 
 # establish match tolerance
   # we are considering MCMT values within +/- 0.6C to be a match
@@ -453,27 +439,36 @@ print(match_summary)
 ## (A) filter fig ----
 
 ### filter 2 ----
-# find PCUs that match ALL PPUs under ssp2
-universal_ssp2 <- match_filt_df %>%
+# find PCUs that match ALL 14 PPUs under ssp2
+n_PPUs_CS <- n_distinct(PPU_MCMT_long$PPU_ID)  # 14, avoids hardcoding
+
+# apply filter
+filter_2 <- match_filt_df %>%
   filter(climate_period == "ssp2_2041_2070") %>%
   group_by(PCU_ID) %>%
   summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
-  filter(n_PPUs_matched == 14) %>%
+  filter(n_PPUs_matched == n_PPUs_CS) %>%
   arrange(PCU_ID)
 
-nrow(universal_ssp2)
+nrow(filter_2)
 # with 18 PPUs, 0 !!!!!!!!!! see notes for interpretation 
 # with 14 PPUs, 177 PCUs are universal matches! 
 
-### filter 3 ----
-# if there were any "universal matches", which would also meet PIPO and CFP thresholds?
-universal_ssp2_filtered <- universal_ssp2 %>%
-  left_join(PCU_attrs, by = "PCU_ID") %>%
-  filter(PIPO_tons >= 10,
-         CFP_prob >= 0.5)
 
-nrow(universal_ssp2_filtered)
-# with 14 PPUs, 53 PCUs are universal matches AND meet our management objectives! 
+### filter 3 ----
+# filter universal matches by all three management objectives:
+  # target species (PIPO_tons), fire risk (CFP_prob), nursery inventory (seedlot_A)
+  # these objectives would be adjustable in a tool
+
+filter_3 <- filter_2 %>%
+  left_join(PCU_attrs, by = "PCU_ID") %>%
+  filter(PIPO_tons >= 10,           # at least 10 tons/acre of PIPO biomass
+         CFP_prob >= 0.5,           # at least 50% probable to have a crown fire
+         is.na(seedlot_A)) %>%      # no overlap with existing nursery seedlot inventory
+  arrange(PCU_ID)
+
+nrow(filter_3)
+# with 14 PPUs, 50 PCUs are universal matches AND meet all management objectives
 
 
 ## (B) PPU table ----
@@ -481,36 +476,20 @@ nrow(universal_ssp2_filtered)
 # to be included in paper body
 # this table will show a summary of median extracted MCMT values for each PPU
   # and also the number of matching PCUs for each PPU
+  # and also a final filtered count after filter 2 & 3
 
-# in addition to climate-match, the case study is also concerned about target species and fire risk
-  # we will further filter the PCUs that are ssp2_2041-2070 matches by these additional priorities
-    # these priorities would be adjustable in a tool
-  # this is a final column for the table, showing the number of PCUs that remain for each PPU after all 3 filters
-
-# check if have NaN
-sum(is.nan(SRME_PCUs_df$PIPO_tons))
-  # 614
-sum(is.nan(SRME_PCUs_df$CFP_prob))
-  #0
-
-# treat NaN as 0 for PIPO_tons before filtering
-SRME_PCUs_df <- SRME_PCUs_df %>%
-  mutate(PIPO_tons = ifelse(is.nan(PIPO_tons), 0, PIPO_tons))
-
-# pull relevant PCU attributes for filtered column
-PCU_attrs <- SRME_PCUs_df %>%
-  select(PCU_ID, PIPO_tons, CFP_prob)
-
-# build filtered match count (ssp2 + PIPO + CFP)
-ssp2_PIPO_CFP_filter <- match_filt_df %>%
+# build filtered match count (ssp2 + PIPO + CFP + seedlot)
+n_filt3_column <- match_filt_df %>%
   filter(climate_period == "ssp2_2041_2070") %>%
   left_join(PCU_attrs, by = "PCU_ID") %>%
-  filter(PIPO_tons >= 10,                 # PCU has at least 10 tons/acre of PIPO biomass
-         CFP_prob >= 0.5) %>%             # PCU is at least 50% probable to have a crown fire, if a fire were to occur in it (high risk)
+  filter(PIPO_tons >= 10,
+         CFP_prob >= 0.5,
+         is.na(seedlot_A)) %>%
   group_by(PPU_ID) %>%
-  summarise(n_ssp2_PIPO_CFP = n(), .groups = "drop")
+  summarise(n_filt3 = n(), .groups = "drop")
 
-str(ssp2_PIPO_CFP_filter)
+str(n_filt3_column)
+
 
 # join PPU MCMT values for each period
 PPU_MCMT_wide <- PPU_MCMT_df %>%
@@ -518,14 +497,14 @@ PPU_MCMT_wide <- PPU_MCMT_df %>%
 
 # assemble full summary table
 PPU_summary_df <- match_summary %>%
-  left_join(ssp2_PIPO_CFP_filter, by = "PPU_ID") %>%
+  left_join(n_filt3_column, by = "PPU_ID") %>%
   left_join(PPU_MCMT_wide, by = "PPU_ID") %>%
   select(PPU_ID,
          ref_MCMT, `ref_1961_1990`,
          curr_MCMT, `curr_2011_2040`,
          ssp2_MCMT, `ssp2_2041_2070`,
          ssp5_MCMT, `ssp5_2041_2070`,
-         n_ssp2_PIPO_CFP) %>%
+         n_filt3) %>%
   rename(
     n_ref  = `ref_1961_1990`,
     n_curr = `curr_2011_2040`,
@@ -536,6 +515,7 @@ PPU_summary_df <- match_summary %>%
 
 print(PPU_summary_df)
 
+
 ### write & read ----
 write.csv(PPU_summary_df, "./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", row.names = FALSE)
 PPU_summary_df   <- read.csv("./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", check.names = FALSE)
@@ -543,14 +523,14 @@ PPU_summary_df   <- read.csv("./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", 
 
 ## (C) PCU table ----
 
-# this table/ SpatVector will serve as an intermediate product to show the utility of the relational lookup table
-  # bc the relational lookup table is too large (>3 million rows) to show in the paper/ dataset 
+# this table/ SpatVector will serve as an intermediate product to show the utility 
+  # of the relational lookup table (too large; >3 million rows to show in the paper/ dataset)
 
 # it will be 1) in the supplemental .csv as a tab, and 2) attached as an attribute table to a PCU SpatVector/ shapefile 
   
 # it has 8 added match columns for the Case Study (CS) PPUs (in addition to the attributes created in Part 2)
-  # 1 column with the number of matching PPUs for each clim period/scenario
-  # 1 column with a list of matching PPUs for each clim period/scenario
+  # 1 column with the number of matching PPUs for each clim period/scenario (n_match)
+  # 1 column with a list of matching PPUs for each clim period/scenario (PPU_list)
     # ref, curr, ssp2, and ssp5
   
 
@@ -618,15 +598,156 @@ writeVector(SRME_PCUs_CS_vect, "./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
 SRME_PCUs_CS_vect <- vect("./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
 
 
+## (D) target species fig ----
+# this is how we are selecting the target species for filter 3 (above)
 
-## (C) universal PCUs ----
+### (a) import veg data ----
+# LANDFIRE EVT = existing vegetation (PCU side: what's there now)
+# LANDFIRE BPS = biophysical setting (PPU side: historic/potential veg for planting site)
+
+# EVT
+EVT_CONUS_rast <- rast("LC24_EVT_250.tif")
+# already in EPSG:5070 (no need to project)
+is.factor(EVT_CONUS_rast) # TRUE
+activeCat(EVT_CONUS_rast) <- "EVT_NAME"
+
+# BPS
+BPS_CONUS_rast <- rast("LC20_BPS_220.tif")
+# already in EPSG:5070 (no need to project)
+is.factor(BPS_CONUS_rast) # TRUE
+activeCat(BPS_CONUS_rast) <- "BPS_NAME"
+
+
+### (b) build curr-specific universal match ----
+# filter_2 (Part 5-A) is already the ssp2 universal match (177 PCUs, all 14 PPUs)
+# here we build the analogous "curr" version, following the same "universal" logic
+
+PCU_curr_match <- match_filt_df %>%
+  filter(climate_period == "curr_2011_2040") %>%
+  group_by(PCU_ID) %>%
+  summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
+  filter(n_PPUs_matched == n_PPUs_CS) %>%
+  arrange(PCU_ID)
+
+nrow(PCU_curr_match) # 385 PCUs are "universal" matches for all 14 PPUs
+
+
+### (c) subset PCU spatvector to matched pools ----
+# no longer separating ARP vs. SRME - all matching is against the full SRME PCU pool already
+PCUs_matched_curr_vect <- SRME_PCUs_CS_vect %>% 
+  filter(PCU_ID %in% PCU_curr_match$PCU_ID)
+
+PCUs_matched_ssp2_vect <- SRME_PCUs_CS_vect %>% 
+  filter(PCU_ID %in% filter_2$PCU_ID)
+
+
+### (d) crop/mask veg rasters to relevant polygons ----
+
+# EVT, curr-matched PCUs
+EVT_curr_rast <- crop(EVT_CONUS_rast, PCUs_matched_curr_vect, mask = TRUE)
+plot(EVT_curr_rast)
+# quick count of distinct EVT categories present
+freq(EVT_curr_rast) %>% nrow() # 30
+
+# EVT, ssp2-matched PCUs
+EVT_ssp2_rast <- crop(EVT_CONUS_rast, PCUs_matched_ssp2_vect, mask = TRUE)
+plot(EVT_ssp2_rast)
+
+# BPS, PPUs
+BPS_PPU_rast <- crop(BPS_CONUS_rast, CaseStudy_PPUs_vect, mask = TRUE)
+plot(BPS_PPU_rast)
+
+
+### (e) build veg composition tables ----
+# helper function: freq table -> % composition, harmonized column names
+# note: BPS and EVT category columns share the "EVT_NAME" label here intentionally,
+# so the three tables can be bound together for plotting
+
+veg_freq_table <- function(rast, group_label) {
+  as.data.frame(freq(rast)) %>%
+    mutate(REL_PERCENT = round((count / sum(count)) * 100, 3),
+           Group = factor(group_label)) %>%
+    rename(EVT_NAME = value) %>%
+    arrange(desc(REL_PERCENT)) %>%
+    select(Group, EVT_NAME, REL_PERCENT)
+}
+
+PPU_BpS_df       <- veg_freq_table(BPS_PPU_rast, "PPU_BpS")
+PCU_EVT_curr_df  <- veg_freq_table(EVT_curr_rast, "PCU_EVT_curr")
+PCU_EVT_ssp2_df  <- veg_freq_table(EVT_ssp2_rast, "PCU_EVT_ssp2")
+
+
+### (f) combine ----
+
+veg_combined_df <- bind_rows(PPU_BpS_df,
+                             PCU_EVT_curr_df,
+                             PCU_EVT_ssp2_df)
+
+# lump rare veg types (< 1%) into "Other"
+veg_lumped <- veg_combined_df %>%
+  mutate(EVT_name_lumped = if_else(REL_PERCENT < 1, "Other", EVT_NAME)) %>%
+  group_by(Group, EVT_name_lumped) %>%
+  summarise(REL_PERCENT = sum(REL_PERCENT), .groups = "drop")
+
+# compute global totals per lumped name for legend/stack order
+lvl_order <- veg_lumped %>%
+  group_by(EVT_name_lumped) %>%
+  summarise(total_rel = sum(REL_PERCENT), .groups = "drop") %>%
+  arrange(desc(total_rel)) %>%
+  pull(EVT_name_lumped)
+
+# ensure clean types
+veg_lumped <- veg_lumped %>%
+  mutate(
+    EVT_name_lumped = factor(EVT_name_lumped, levels = lvl_order),
+    Group = factor(Group, levels = c("PPU_BpS", "PCU_EVT_curr", "PCU_EVT_ssp2")),
+    REL_PERCENT = as.numeric(REL_PERCENT)
+  )
+
+# check each group sums to 100
+veg_lumped %>%
+  group_by(Group) %>%
+  summarise(total = sum(REL_PERCENT), .groups = "drop")
+
+
+### (g) table ----
+# wide-format version of veg_lumped for supplemental materials
+# rows = veg type (lumped), columns = each group, values = % composition
+
+veg_table_supp <- veg_lumped %>%
+  pivot_wider(names_from = Group, values_from = REL_PERCENT, values_fill = 0) %>%
+  mutate(`Vegetation Type` = factor(EVT_name_lumped, levels = lvl_order)) %>%
+  arrange(`Vegetation Type`) %>%
+  select(`Vegetation Type`, PPU_BpS, PCU_EVT_curr, PCU_EVT_ssp2)
+
+print(veg_table_supp)
+
+
+# check: each column (group) should sum to 100
+veg_table_supp %>%
+  summarise(across(where(is.numeric), sum))
+
+### write ----
+write.csv(veg_table_supp, "./CaseStudy_S4F/paper_tables/veg_table_supp.csv", row.names = FALSE)
+
+
+### (h) plot ----
+veg_plot <- 
+  ggplot(veg_lumped, aes(x = Group, y = REL_PERCENT, 
+                         fill = EVT_name_lumped)) +
+  geom_col(position = position_stack(reverse = TRUE), color = "white", width = 0.9) + 
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  scale_fill_viridis_d(option = "H", direction = 1) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  labs(x = NULL, y = "Relative Percent", fill = "Vegetation Type") +
+  theme_minimal()
+
+veg_plot
 
 
 
-
-## (D) match figure ----
-
-
+# (6) match clims with SLs ----
+# we will do the same, but matching the PPUs with seedlots (SLs) in the nursery inventory
 
 
 
