@@ -328,7 +328,7 @@ str(PPU_MCMT_df)
 
 # (4) match clims ----
 
-## (A) pivot  ---- 
+## (A) prep PPUs  ---- 
   # PPU MCMT to long format
 PPU_MCMT_long <- PPU_MCMT_df %>% 
   select(PPU_ID, ref_MCMT, curr_MCMT, ssp2_MCMT, ssp5_MCMT) %>% 
@@ -343,33 +343,68 @@ PPU_MCMT_long <- PPU_MCMT_df %>%
 # check 
 str(PPU_MCMT_long) 
   # with 18 PCUs, expect: 72 rows (18 PPUs x 4 periods), 3 columns
-  # with 14 PCUs, expect: 53 rows (14 PPUs x 4 periods), 3 columns 
+  # with 14 PCUs, expect: 56 rows (14 PPUs x 4 periods), 3 columns 
 
 
-## (B) cross join  ---- 
-  # with PCU MCMT only
-  # PCUs were created in part 1, and attributes were added in part 2
-  # there are 46179 total PCUs across all 10 NFs in the SRME
+## (B) prep PCUs  ---- 
 
 ### read ----
+# PCUs were created in part 1, and attributes were added in part 2
+# there are 46179 total PCUs across all 10 NFs in the SRME
+
 SRME_PCUs_vect <- vect("./SRME_S4F/.shp/SRME_PCUs_vect.shp")
 SRME_PCUs_df <- as.data.frame(SRME_PCUs_vect)
+str(SRME_PCUs_df)
 
+### adjust ----
 
-PCU_MCMT_df <- SRME_PCUs_df %>% 
-  select(PCU_ID, MCMT_C) %>% 
+PCU_df <- SRME_PCUs_df %>% 
+  select(PCU_ID, MCMT_C, PIPO_tons, CFP_prob, seedlot_A, seedlot_B) %>% 
   rename(PCU_MCMT = MCMT_C)
 
-str(PCU_MCMT_df)
+str(PCU_df)
 
-# match PCUs with PPUs  
+
+# check if have NaN
+sum(is.nan(PCU_df$PIPO_tons))
+# 614
+sum(is.nan(PCU_df$CFP_prob))
+#0
+
+# treat NaN as 0 for PIPO_tons before filtering
+PCU_df <- PCU_df %>%
+  mutate(PIPO_tons = ifelse(is.nan(PIPO_tons), 0, PIPO_tons))
+
+# pull relevant PCU attributes for filtered column
+PCU_attrs <- PCU_df %>%
+  select(PCU_ID, PIPO_tons, CFP_prob, seedlot_A, seedlot_B)
+
+# build filtered match count (ssp2 + PIPO + CFP)
+PPU_n_filt3 <- match_filt_df %>%
+  filter(climate_period == "ssp2_2041_2070") %>%
+  left_join(PCU_attrs, by = "PCU_ID") %>%
+  filter(PIPO_tons >= 10,                 # PCU has at least 10 tons/acre of PIPO biomass
+         CFP_prob >= 0.5,
+         seedlot_A = NA, 
+         seedlot_B = NA) %>%             # PCU is at least 50% probable to have a crown fire, if a fire were to occur in it (high risk)
+  group_by(PPU_ID) %>%
+  summarise(n_filt3 = n(), .groups = "drop")
+
+str(PPU_n_filt3)
+
+
+
+
+### cross join ----  
 match_full_df <- PPU_MCMT_long %>% 
-  cross_join(PCU_MCMT_df) 
+  cross_join(PCU_df) 
 
 # check 
 nrow(match_full_df) 
-  # with 18 PCUs, expect 3324888 rows (18 PPUs x 4 periods x 46179 PCUs) 
-  # with 14 PCUs, expect 2586024 rows (14 PPUs x 4 periods x 46179 PCUs) 
+# with 18 PCUs, expect 3324888 rows (18 PPUs x 4 periods x 46179 PCUs) 
+# with 14 PCUs, expect 2586024 rows (14 PPUs x 4 periods x 46179 PCUs) 
+
+
 
 
 ## (C) calculate MCMT difference ---- 
@@ -406,15 +441,42 @@ match_summary <- match_filt_df %>%
   group_by(PPU_ID, climate_period) %>%
   summarise(n_matches = n(), .groups = "drop") %>%
   pivot_wider(names_from = climate_period, values_from = n_matches) %>%
-  arrange(PPU_ID) %>% 
+  arrange(PPU_ID)
 
 print(match_summary)
 
 
 
-# (5) make tables for paper ----
+# (5) visuals for paper ----
 
-## (A) PPU table ----
+
+## (A) filter fig ----
+
+### filter 2 ----
+# find PCUs that match ALL PPUs under ssp2
+universal_ssp2 <- match_filt_df %>%
+  filter(climate_period == "ssp2_2041_2070") %>%
+  group_by(PCU_ID) %>%
+  summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
+  filter(n_PPUs_matched == 14) %>%
+  arrange(PCU_ID)
+
+nrow(universal_ssp2)
+# with 18 PPUs, 0 !!!!!!!!!! see notes for interpretation 
+# with 14 PPUs, 177 PCUs are universal matches! 
+
+### filter 3 ----
+# if there were any "universal matches", which would also meet PIPO and CFP thresholds?
+universal_ssp2_filtered <- universal_ssp2 %>%
+  left_join(PCU_attrs, by = "PCU_ID") %>%
+  filter(PIPO_tons >= 10,
+         CFP_prob >= 0.5)
+
+nrow(universal_ssp2_filtered)
+# with 14 PPUs, 53 PCUs are universal matches AND meet our management objectives! 
+
+
+## (B) PPU table ----
 
 # to be included in paper body
 # this table will show a summary of median extracted MCMT values for each PPU
@@ -430,7 +492,7 @@ sum(is.nan(SRME_PCUs_df$PIPO_tons))
   # 614
 sum(is.nan(SRME_PCUs_df$CFP_prob))
   #0
-  
+
 # treat NaN as 0 for PIPO_tons before filtering
 SRME_PCUs_df <- SRME_PCUs_df %>%
   mutate(PIPO_tons = ifelse(is.nan(PIPO_tons), 0, PIPO_tons))
@@ -479,7 +541,7 @@ write.csv(PPU_summary_df, "./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", row
 PPU_summary_df   <- read.csv("./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", check.names = FALSE)
 
 
-## (B) PCU table ----
+## (C) PCU table ----
 
 # this table/ SpatVector will serve as an intermediate product to show the utility of the relational lookup table
   # bc the relational lookup table is too large (>3 million rows) to show in the paper/ dataset 
@@ -559,26 +621,7 @@ SRME_PCUs_CS_vect <- vect("./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
 
 ## (C) universal PCUs ----
 
-# find PCUs that match ALL 18 PPUs under ssp2
-universal_ssp2 <- match_filt_df %>%
-  filter(climate_period == "ssp2_2041_2070") %>%
-  group_by(PCU_ID) %>%
-  summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
-  filter(n_PPUs_matched == 14) %>%
-  arrange(PCU_ID)
 
-nrow(universal_ssp2)
-  # with 18 PPUs, 0 !!!!!!!!!! see notes for interpretation 
-  # with 14 PPUs, 177 PCUs are universal matches! 
-
-# if there were any "universal matches", which would also meet PIPO and CFP thresholds?
-universal_ssp2_filtered <- universal_ssp2 %>%
-  left_join(PCU_attrs, by = "PCU_ID") %>%
-  filter(PIPO_tons >= 10,
-         CFP_prob >= 0.5)
-
-nrow(universal_ssp2_filtered)
-  # with 14 PPUs, 53 PCUs are universal matches AND meet our management objectives! 
 
 
 ## (D) match figure ----
