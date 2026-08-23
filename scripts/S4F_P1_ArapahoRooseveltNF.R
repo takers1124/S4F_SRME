@@ -568,16 +568,6 @@ ARNF_PCUs_1A_vect <- vect("./ArapahoRooseveltNF_S4F/.shp/ARNF_PCUs_1A_vect.shp")
 
 
 
-# ** rerun ----
-## select Lady Moon ----
-# for the case study, we select a PCU that we will use for FWD climate matching in part 2
-# the PCU closest to the Lady Moon trail head has PCU_ID = 212
-
-PCU_LM_vect <- ARP_PCUs_1A_vect %>% 
-  filter(PCU_ID == 204)
-plot(PCU_LM_vect)
-
-
 
 # (6) make PPUs ----
 # for the case study, we create potential planting units (PPUs) that we will use for REV climate matching in part 2
