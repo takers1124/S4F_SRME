@@ -329,7 +329,6 @@ str(PPU_MCMT_df)
 
 # (4) match clims with PCUs ----
 
-
 ## (A) prep PPUs  ---- 
   # PPU MCMT to long format
 PPU_MCMT_long <- PPU_MCMT_df %>% 
@@ -517,8 +516,8 @@ print(PPU_summary_df)
 
 
 ### write & read ----
-write.csv(PPU_summary_df, "./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", row.names = FALSE)
-PPU_summary_df   <- read.csv("./CaseStudy_S4F/paper_tables/PPU_summary_df.csv", check.names = FALSE)
+write.csv(PPU_summary_df, "./CaseStudy_S4F/CSVs/PPU_summary_df.csv", row.names = FALSE)
+PPU_summary_df   <- read.csv("./CaseStudy_S4F/CSVs/PPU_summary_df.csv", check.names = FALSE)
 
 
 ## (C) PCU table ----
@@ -575,8 +574,8 @@ nrow(SRME_PCUs_CS_df)
 
 
 #### write & read ----
-write.csv(SRME_PCUs_CS_df, "./CaseStudy_S4F/paper_tables/SRME_PCUs_CS_df.csv", row.names = FALSE)
-SRME_PCUs_CS_df <- read.csv("./CaseStudy_S4F/paper_tables/SRME_PCUs_CS_df.csv", check.names = FALSE)
+write.csv(SRME_PCUs_CS_df, "./CaseStudy_S4F/CSVs/SRME_PCUs_CS_df.csv", row.names = FALSE)
+SRME_PCUs_CS_df <- read.csv("./CaseStudy_S4F/CSVs/SRME_PCUs_CS_df.csv", check.names = FALSE)
 
 
 ### join back to full PCU SpatVector ----
@@ -728,7 +727,7 @@ veg_table_supp %>%
   summarise(across(where(is.numeric), sum))
 
 ### write ----
-write.csv(veg_table_supp, "./CaseStudy_S4F/paper_tables/veg_table_supp.csv", row.names = FALSE)
+write.csv(veg_table_supp, "./CaseStudy_S4F/CSVs/veg_table_supp.csv", row.names = FALSE)
 
 
 ### (h) plot ----
@@ -745,17 +744,17 @@ veg_plot <-
 veg_plot
 
 
-
+# * not finished ----
 # (6) match clims with SLs ----
 # we will do the same, but matching the PPUs with seedlots (SLs) in the nursery inventory
 
 ## (A) prep PPUs  ---- 
-# this was done in P3-4AA above
+# this was done in P3-4A above
 
 ## (B) prep SLs  ---- 
 
 ### read ----
-# SLs were created in the script for part 2 (P2-2-D)
+# SLs were created in the script for part 2 (P2-2D)
 # there are 166 total SLs in the SRME that have lat/long info
 
 SRME_seed_poly_vect <- vect("./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
@@ -764,8 +763,8 @@ SRME_seed_poly_vect <- vect("./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
 ### extract MCMT ----
 # just using the reference period (1961-1990) MCMT for the SLs
 
-ref_MCMT_SL_df <- extract(ref_ARNF_rast, SRME_seed_poly_vect, fun = median, na.rm = TRUE)
-str(ref_MCMT_SL_df)
+ref_MCMT_SL_df <- extract(ref_SRME_rast, SRME_seed_poly_vect, fun = median, na.rm = TRUE)
+str(ref_MCMT_SL_df) 
 
 # adjust
 ref_MCMT_SL_df <- ref_MCMT_SL_df %>% 
@@ -806,10 +805,10 @@ match_filt_SL_df <- match_full_SL_df %>%
 # check 
 str(match_filt_SL_df) 
 nrow(match_filt_SL_df)
-  # with 14 PCUs, 69 rows
+  # 943 rows
 
   # much less bc only keeping matches
-(69/9296)*100 # 0.7422547% of SLs across SRME are matches for the case study PPUs
+(943/9296)*100 # 10.14415% of SLs across SRME are matches for the case study PPUs
 
 # quick summary: match counts per PPU per climate period (# matching PCUs)
 match_SL_summary <- match_filt_SL_df %>%
@@ -834,8 +833,8 @@ print(match_SL_summary)
 # ref, curr, ssp2, and ssp5
 
 
-# build count and list summaries from match_filt_df
-SL_match_wide <- match_filt_df %>%
+# build count and list summaries from match_filt_SL_df
+SL_match_wide <- match_filt_SL_df %>%
   group_by(SL_ID, climate_period) %>%
   summarise(
     n_match  = n_distinct(PPU_ID),
@@ -852,53 +851,49 @@ SL_match_wide <- match_filt_df %>%
     ref_list   = ref_1961_1990_PPU_list,
     curr_match = curr_2011_2040_n_match,
     curr_list  = curr_2011_2040_PPU_list,
-    ssp2_match = ssp2_2041_2070_n_match,
+    ssp2_match = ssp2_2041_2070_n_match, 
     ssp2_list  = ssp2_2041_2070_PPU_list,
     ssp5_match = ssp5_2041_2070_n_match,
     ssp5_list  = ssp5_2041_2070_PPU_list
   ) %>%
   # replace NAs with 0 for count columns only
   mutate(across(ends_with("_match"), ~ replace_na(., 0))) %>% 
-  select(SL_ID, ref_match, ref_list, curr_match, curr_list, 
+  select(SL_ID, ref_match, ref_list, curr_match, curr_list,
          ssp2_match, ssp2_list, ssp5_match, ssp5_list)
 
+str(SL_match_wide)
 
-
-### join back to full PCU dataframe ----
+### join back to full SL dataframe ----
 SRME_SLs_CS_df <- ref_MCMT_SL_df %>%
-  left_join(SL_match_wide, by = "PCU_ID")
+  left_join(SL_match_wide, by = "SL_ID")
 
 # check
 str(SRME_SLs_CS_df)
 nrow(SRME_SLs_CS_df) 
-# should still be 46179
+# should still be 166 (all SLs in SRME with lat/long)
 
 
-#### write & read ----
-write.csv(SRME_SLs_CS_df, "./CaseStudy_S4F/paper_tables/SRME_SLs_CS_df.csv", row.names = FALSE)
-SRME_SLs_CS_df <- read.csv("./CaseStudy_S4F/paper_tables/SRME_SLs_CS_df.csv", check.names = FALSE)
-
-
-### join back to full PCU SpatVector ----
+### join back to full SL SpatVector ----
 # select only new cols and ID
-SL_matches <- SRME_SLs_CS_df %>% 
-  select(SL_ID, ref_match, ref_list, curr_match, curr_list, 
-         ssp2_match, ssp2_list, ssp5_match, ssp5_list)
+# SL_matches <- SRME_SLs_CS_df %>% 
+  #select(SL_ID, ref_match, ref_list, curr_match, curr_list, 
+       #  ssp2_match, ssp2_list, ssp5_match, ssp5_list)
 
 SRME_SL_CS_vect <- SRME_seed_poly_vect %>% 
-  left_join(PCU_matches, by = "PCU_ID")
-
-# check
-PCU_matches_df <- as.data.frame(SRME_SL_CS_vect)
-str(PCU_matches_df)
-
+  left_join(SRME_SLs_CS_df, by = "SL_ID")
 
 #### write & read ----
-writeVector(SRME_SL_CS_vect, "./CaseStudy_S4F/PCUs/SRME_SL_CS_vect.shp")
-SRME_SL_CS_vect <- vect("./CaseStudy_S4F/PCUs/SRME_PCUs_CS_vect.shp")
+writeVector(SRME_SL_CS_vect, "./CaseStudy_S4F/SLs/SRME_SL_CS_vect.shp")
+SRME_SL_CS_vect <- vect("./CaseStudy_S4F/SLs/SRME_SL_CS_vect.shp")
 
 
+# check
+SRME_SL_CS_df <- as.data.frame(SRME_SL_CS_vect)
+str(SRME_SL_CS_df)
 
+#### write & read ----
+write.csv(SRME_SLs_CS_df, "./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", row.names = FALSE)
+SRME_SLs_CS_df <- read.csv("./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", check.names = FALSE)
 
 
 
