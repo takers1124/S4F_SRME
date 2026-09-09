@@ -616,11 +616,21 @@ BPS_CONUS_rast <- rast("LC20_BPS_220.tif")
 is.factor(BPS_CONUS_rast) # TRUE
 activeCat(BPS_CONUS_rast) <- "BPS_NAME"
 
-
-### (b) build curr-specific universal match ----
+### (b) build ref-specific universal match ----
 # filter_2 (Part 5-A) is already the ssp2 universal match (177 PCUs, all 14 PPUs)
-# here we build the analogous "curr" version, following the same "universal" logic
+# here we build the analogous "ref" version, following the same "universal" logic
 
+PCU_ref_match <- match_filt_df %>%
+  filter(climate_period == "ref_1961_1990") %>%
+  group_by(PCU_ID) %>%
+  summarise(n_PPUs_matched = n_distinct(PPU_ID), .groups = "drop") %>%
+  filter(n_PPUs_matched == n_PPUs_CS) %>%
+  arrange(PCU_ID)
+
+nrow(PCU_ref_match) # 426 PCUs are "universal" matches for all 14 PPUs at the reference period of the PPUs
+
+
+### (c) build curr-specific universal match ----
 PCU_curr_match <- match_filt_df %>%
   filter(climate_period == "curr_2011_2040") %>%
   group_by(PCU_ID) %>%
@@ -628,36 +638,47 @@ PCU_curr_match <- match_filt_df %>%
   filter(n_PPUs_matched == n_PPUs_CS) %>%
   arrange(PCU_ID)
 
-nrow(PCU_curr_match) # 385 PCUs are "universal" matches for all 14 PPUs
+nrow(PCU_curr_match) # 385 PCUs are "universal" matches for all 14 PPUs at the current period of the PPUs
 
 
-### (c) subset PCU spatvector to matched pools ----
-# no longer separating ARP vs. SRME - all matching is against the full SRME PCU pool already
+### (d) subset PCU spatvector to matched pools ----
+PCUs_matched_ref_vect <- SRME_PCUs_CS_vect %>% 
+  filter(PCU_ID %in% PCU_ref_match$PCU_ID) # 426 geometries
+
 PCUs_matched_curr_vect <- SRME_PCUs_CS_vect %>% 
-  filter(PCU_ID %in% PCU_curr_match$PCU_ID)
+  filter(PCU_ID %in% PCU_curr_match$PCU_ID) # 385 geometries 
 
 PCUs_matched_ssp2_vect <- SRME_PCUs_CS_vect %>% 
-  filter(PCU_ID %in% filter_2$PCU_ID)
+  filter(PCU_ID %in% filter_2$PCU_ID) # 177 geometries
 
 
-### (d) crop/mask veg rasters to relevant polygons ----
+### (e) crop/mask veg rasters to relevant polygons ----
+
+# EVT, ref-matched PCUs
+EVT_ref_rast <- crop(EVT_CONUS_rast, PCUs_matched_ref_vect, mask = TRUE)
+plot(EVT_ref_rast)
+# quick count of distinct EVT categories present
+freq(EVT_ref_rast) %>% nrow() # 31
 
 # EVT, curr-matched PCUs
 EVT_curr_rast <- crop(EVT_CONUS_rast, PCUs_matched_curr_vect, mask = TRUE)
 plot(EVT_curr_rast)
-# quick count of distinct EVT categories present
 freq(EVT_curr_rast) %>% nrow() # 30
 
 # EVT, ssp2-matched PCUs
 EVT_ssp2_rast <- crop(EVT_CONUS_rast, PCUs_matched_ssp2_vect, mask = TRUE)
 plot(EVT_ssp2_rast)
+freq(EVT_ssp2_rast) %>% nrow() # 25
+
 
 # BPS, PPUs
 BPS_PPU_rast <- crop(BPS_CONUS_rast, CaseStudy_PPUs_vect, mask = TRUE)
 plot(BPS_PPU_rast)
+freq(BPS_PPU_rast) %>% nrow() # 12
 
 
-### (e) build veg composition tables ----
+
+### (f) build veg composition tables ----
 # helper function: freq table -> % composition, harmonized column names
 # note: BPS and EVT category columns share the "EVT_NAME" label here intentionally,
 # so the three tables can be bound together for plotting
@@ -672,13 +693,15 @@ veg_freq_table <- function(rast, group_label) {
 }
 
 PPU_BpS_df       <- veg_freq_table(BPS_PPU_rast, "PPU_BpS")
+PCU_EVT_ref_df  <- veg_freq_table(EVT_ref_rast, "PCU_EVT_ref")
 PCU_EVT_curr_df  <- veg_freq_table(EVT_curr_rast, "PCU_EVT_curr")
 PCU_EVT_ssp2_df  <- veg_freq_table(EVT_ssp2_rast, "PCU_EVT_ssp2")
 
 
-### (f) combine ----
+### (g) combine ----
 
 veg_combined_df <- bind_rows(PPU_BpS_df,
+                             PCU_EVT_ref_df,
                              PCU_EVT_curr_df,
                              PCU_EVT_ssp2_df)
 
@@ -699,7 +722,7 @@ lvl_order <- veg_lumped %>%
 veg_lumped <- veg_lumped %>%
   mutate(
     EVT_name_lumped = factor(EVT_name_lumped, levels = lvl_order),
-    Group = factor(Group, levels = c("PPU_BpS", "PCU_EVT_curr", "PCU_EVT_ssp2")),
+    Group = factor(Group, levels = c("PPU_BpS", "PCU_EVT_ref", "PCU_EVT_curr", "PCU_EVT_ssp2")),
     REL_PERCENT = as.numeric(REL_PERCENT)
   )
 
@@ -709,28 +732,28 @@ veg_lumped %>%
   summarise(total = sum(REL_PERCENT), .groups = "drop")
 
 
-### (g) table ----
+### (h) table ----
 # wide-format version of veg_lumped for supplemental materials
 # rows = veg type (lumped), columns = each group, values = % composition
 
-veg_table_supp <- veg_lumped %>%
+veg_df <- veg_lumped %>%
   pivot_wider(names_from = Group, values_from = REL_PERCENT, values_fill = 0) %>%
   mutate(`Vegetation Type` = factor(EVT_name_lumped, levels = lvl_order)) %>%
   arrange(`Vegetation Type`) %>%
-  select(`Vegetation Type`, PPU_BpS, PCU_EVT_curr, PCU_EVT_ssp2)
+  select(`Vegetation Type`, PPU_BpS, PCU_EVT_ref, PCU_EVT_curr, PCU_EVT_ssp2)
 
-print(veg_table_supp)
+print(veg_df)
 
 
 # check: each column (group) should sum to 100
-veg_table_supp %>%
+veg_df %>%
   summarise(across(where(is.numeric), sum))
 
 ### write ----
-write.csv(veg_table_supp, "./CaseStudy_S4F/CSVs/veg_table_supp.csv", row.names = FALSE)
+write.csv(veg_df, "./CaseStudy_S4F/CSVs/veg_df.csv", row.names = FALSE)
 
 
-### (h) plot ----
+### (i) plot ----
 veg_plot <- 
   ggplot(veg_lumped, aes(x = Group, y = REL_PERCENT, 
                          fill = EVT_name_lumped)) +
@@ -744,7 +767,7 @@ veg_plot <-
 veg_plot
 
 
-# * not finished ----
+
 # (6) match clims with SLs ----
 # we will do the same, but matching the PPUs with seedlots (SLs) in the nursery inventory
 
@@ -896,6 +919,14 @@ write.csv(SRME_SLs_CS_df, "./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", row.names =
 SRME_SLs_CS_df <- read.csv("./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", check.names = FALSE)
 
 
+# need points for easier visualization in Arc
+SRME_seed_points_vect <- vect("./SRME_S4F/.shp/SRME_seed_points_vect.shp")
 
+SRME_SL_CS_pts_vect <- SRME_seed_points_vect %>% 
+  left_join(SRME_SLs_CS_df, by = "SL_ID")
+
+#### write & read ----
+writeVector(SRME_SL_CS_pts_vect, "./CaseStudy_S4F/SLs/SRME_SL_CS_pts_vect.shp")
+SRME_SL_CS_pts_vect <- vect("./CaseStudy_S4F/SLs/SRME_SL_CS_pts_vect.shp")
 
 
