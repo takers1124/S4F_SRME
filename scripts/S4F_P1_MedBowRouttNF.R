@@ -305,7 +305,7 @@ MBRNF_road_filt_rast <- rast("./MedBowRouttNF_S4F/.tif/MBRNF_road_filt_rast.tif"
 
 # (4) combine data ----
 ## resample ----
-# first, the slope raster need to be resampled so the extent & resolution aligns with others
+# first, the slope raster needs to be resampled so the extent & resolution aligns with others
 # I am choosing EVH to use as the template
 
 slope_resampled <- resample(MBRNF_slope_filt_rast, MBRNF_EVH_filt_rast, method = "near")
