@@ -182,111 +182,46 @@ crs(reference_1961_1990_MCMT) # EPSG: 8806
 
 
 ## (A) pre-process clim data ----
-  # project, crop, & mask 
-  # only need MCMT for the ARNF (much smaller file) bc case study PPUs are in ARNF
-  # but setting up the code for all NFs in SRME for later expansion
+  # project, rename, write
 
 ### reference ----
-ref_projected <- project(reference_1961_1990_MCMT, "EPSG:5070")
+ref_MCMT_rast <- project(reference_1961_1990_MCMT, "EPSG:5070")
+names(ref_MCMT_rast) <- "ref_MCMT"
+plot(ref_MCMT_rast)
 
-# ARNF
-ref_ARNF_rast <- crop(ref_projected, ARNF_vect, mask = TRUE)
-summary(ref_ARNF_rast)  # min: -12.839, max: -1.303, mean: -7.612     
-plot(ref_ARNF_rast)  
-names(ref_ARNF_rast) <- "ref_MCMT"
-
-# SRME_NFs 
-ref_SRME_rast <- crop(ref_projected, SRME_NFs_vect, mask = TRUE)
-summary(ref_SRME_rast)  # min: -13.878, max: -0.163, mean: -6.608  
-plot(ref_SRME_rast) 
-polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
-names(ref_SRME_rast) <- "ref_MCMT"
-
-#### write & read ----
-writeRaster(ref_ARNF_rast, "./CaseStudy_S4F/MCMT_rast/ref_ARNF_rast.tif")
-ref_ARNF_rast <- rast("./CaseStudy_S4F/MCMT_rast/ref_ARNF_rast.tif")
-
-writeRaster(ref_SRME_rast, "./CaseStudy_S4F/MCMT_rast/ref_SRME_rast.tif")
-ref_SRME_rast <- rast("./CaseStudy_S4F/MCMT_rast/ref_SRME_rast.tif")
+writeRaster(ref_MCMT_rast, "./CaseStudy_S4F/MCMT_rast/ref_MCMT_rast.tif")
+ref_MCMT_rast <- rast("./CaseStudy_S4F/MCMT_rast/ref_MCMT_rast.tif")
 
 
 ### current ----
-current_projected <- project(current_2011_2040_MCMT, "EPSG:5070")
+curr_MCMT_rast <- project(current_2011_2040_MCMT, "EPSG:5070")
+names(curr_MCMT_rast) <- "curr_MCMT"
 
-# ARNF
-curr_ARNF_rast <- crop(current_projected, ARNF_vect, mask = TRUE)
-summary(curr_ARNF_rast)  # min: -10.5840, max: 0.8993  , mean: -5.3997       
-plot(curr_ARNF_rast)  
-names(curr_ARNF_rast) <- "curr_MCMT"
-
-# SRME 
-curr_SRME_rast <- crop(current_projected, SRME_NFs_vect, mask = TRUE)
-summary(curr_SRME_rast)  # min: -11.478, max: 2.461, mean: -4.307     
-plot(curr_SRME_rast) 
-polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
-names(curr_SRME_rast) <- "curr_MCMT"
-
-#### write & read ----
-writeRaster(curr_ARNF_rast, "./CaseStudy_S4F/MCMT_rast/curr_ARNF_rast.tif")
-curr_ARNF_rast <- rast("./CaseStudy_S4F/MCMT_rast/curr_ARNF_rast.tif")
-
-writeRaster(curr_SRME_rast, "./CaseStudy_S4F/MCMT_rast/curr_SRME_rast.tif")
-curr_SRME_rast <- rast("./CaseStudy_S4F/MCMT_rast/curr_SRME_rast.tif")
+writeRaster(curr_MCMT_rast, "./CaseStudy_S4F/MCMT_rast/curr_MCMT_rast.tif")
+curr_MCMT_rast <- rast("./CaseStudy_S4F/MCMT_rast/curr_MCMT_rast.tif")
 
 
 ### ssp2 ----
-ssp2_projected <- project(ssp2_2041_2070_MCMT, "EPSG:5070") # took ~ 4 mins
+ssp2_MCMT_rast <- project(ssp2_2041_2070_MCMT, "EPSG:5070") # took ~ 4 mins
+names(ssp2_MCMT_rast) <- "ssp2_MCMT"
 
-# ARNF
-ssp2_ARNF_rast <- crop(ssp2_projected, ARNF_vect, mask = TRUE)
-summary(ssp2_ARNF_rast)  # min: -8.2840, max: 3.3150, mean: -3.0287     
-plot(ssp2_ARNF_rast)  
-names(ssp2_ARNF_rast) <- "ssp2_MCMT"
-
-# SRME
-ssp2_SRME_rast <- crop(ssp2_projected, SRME_NFs_vect, mask = TRUE)
-summary(ssp2_SRME_rast) # min: -9.078, max: 5.480, mean: -1.630
-plot(ssp2_SRME_rast)    
-polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
-names(ssp2_SRME_rast) <- "ssp2_MCMT"
-
-#### write & read ----
-writeRaster(ssp2_ARNF_rast, "./CaseStudy_S4F/MCMT_rast/ssp2_ARNF_rast.tif")
-ssp2_ARNF_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp2_ARNF_rast.tif")
-
-writeRaster(ssp2_SRME_rast, "./CaseStudy_S4F/MCMT_rast/ssp2_SRME_rast.tif")
-ssp2_SRME_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp2_SRME_rast.tif")
+writeRaster(ssp2_MCMT_rast, "./CaseStudy_S4F/MCMT_rast/ssp2_MCMT_rast.tif")
+ssp2_MCMT_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp2_MCMT_rast.tif")
 
 
 ### ssp5 ----
-ssp5_projected <- project(ssp5_2041_2070_MCMT, "EPSG:5070") # took ~ 4 mins
+ssp5_MCMT_rast <- project(ssp5_2041_2070_MCMT, "EPSG:5070") # took ~ 4 mins
+names(ssp5_MCMT_rast) <- "ssp5_MCMT"
 
-# ARNF
-ssp5_ARNF_rast <- crop(ssp5_projected, ARNF_vect, mask = TRUE)
-summary(ssp5_ARNF_rast)  # min: -7.0859, max: 4.5150, mean: -1.8743   
-plot(ssp5_ARNF_rast)  
-names(ssp5_ARNF_rast) <- "ssp5_MCMT"
-
-# SRME
-ssp5_SRME_rast <- crop(ssp5_projected, SRME_NFs_vect, mask = TRUE)
-summary(ssp5_SRME_rast)  # min: -8.078, max: 6.868, mean: -0.363 
-plot(ssp5_SRME_rast)  
-polys(ARNF_vect, col = "black", alpha=0.01, lwd=0.5)
-names(ssp5_SRME_rast) <- "ssp5_MCMT"
-
-#### write & read ----
-writeRaster(ssp5_ARNF_rast, "./CaseStudy_S4F/MCMT_rast/ssp5_ARNF_rast.tif")
-ssp5_ARNF_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp5_ARNF_rast.tif")
-
-writeRaster(ssp5_SRME_rast, "./CaseStudy_S4F/MCMT_rast/ssp5_SRME_rast.tif")
-ssp5_SRME_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp5_SRME_rast.tif")
+writeRaster(ssp5_MCMT_rast, "./CaseStudy_S4F/MCMT_rast/ssp5_MCMT_rast.tif")
+ssp5_MCMT_rast <- rast("./CaseStudy_S4F/MCMT_rast/ssp5_MCMT_rast.tif")
 
 
 
 ## (B) extract clims ----
 
 ### ref ----
-ref_MCMT_df <- extract(ref_ARNF_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
+ref_MCMT_df <- extract(ref_MCMT_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
 str(ref_MCMT_df)
 # adjust
 ref_MCMT_df <- ref_MCMT_df %>% 
@@ -294,7 +229,7 @@ ref_MCMT_df <- ref_MCMT_df %>%
   select(-1)
 
 ### curr ----
-curr_MCMT_df <- extract(curr_ARNF_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
+curr_MCMT_df <- extract(curr_MCMT_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
 str(curr_MCMT_df)
 # adjust
 curr_MCMT_df <- curr_MCMT_df %>% 
@@ -302,7 +237,7 @@ curr_MCMT_df <- curr_MCMT_df %>%
   select(-1)
 
 ### ssp2 ----
-ssp2_MCMT_df <- extract(ssp2_ARNF_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
+ssp2_MCMT_df <- extract(ssp2_MCMT_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
 str(ssp2_MCMT_df)
 # adjust
 ssp2_MCMT_df <- ssp2_MCMT_df %>% 
@@ -310,7 +245,7 @@ ssp2_MCMT_df <- ssp2_MCMT_df %>%
   select(-1)
 
 ### ssp5 ----
-ssp5_MCMT_df <- extract(ssp5_ARNF_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
+ssp5_MCMT_df <- extract(ssp5_MCMT_rast, CaseStudy_PPUs_vect, fun = median, na.rm = TRUE)
 str(ssp5_MCMT_df)
 # adjust
 ssp5_MCMT_df <- ssp5_MCMT_df %>% 
@@ -765,168 +700,4 @@ veg_plot <-
   theme_minimal()
 
 veg_plot
-
-
-
-# (6) match clims with SLs ----
-# we will do the same, but matching the PPUs with seedlots (SLs) in the nursery inventory
-
-## (A) prep PPUs  ---- 
-# this was done in P3-4A above
-
-## (B) prep SLs  ---- 
-
-### read ----
-# SLs were created in the script for part 2 (P2-2D)
-# there are 166 total SLs in the SRME that have lat/long info
-
-SRME_seed_poly_vect <- vect("./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
-
-
-### extract MCMT ----
-# just using the reference period (1961-1990) MCMT for the SLs
-
-ref_MCMT_SL_df <- extract(ref_SRME_rast, SRME_seed_poly_vect, fun = median, na.rm = TRUE)
-str(ref_MCMT_SL_df) 
-
-# adjust
-ref_MCMT_SL_df <- ref_MCMT_SL_df %>% 
-  mutate(SL_ID = SRME_seed_poly_vect$SL_ID) %>% 
-  select(SL_ID, ref_MCMT) %>% 
-  rename(SL_MCMT = ref_MCMT)
-
-
-## (C) cross join ----  
-match_full_SL_df <- PPU_MCMT_long %>% 
-  cross_join(ref_MCMT_SL_df) 
-
-# check 
-nrow(match_full_SL_df) 
-# 9296 rows (14 PPUs x 4 periods x 166 PCUs) 
-
-
-## (D) calculate MCMT difference ---- 
-  # and filter to matches
-
-# this is a long-format match table (relational lookup)
-  # and would serve as the backend for a future tool 
-  # it would be created fresh for any case study PPUs
-  # it only includes PCUs that are a match for the case study PPUs
-
-# establish match tolerance
-  # we are considering MCMT values within +/- 0.6C to be a match
-  # see paper for details
-  # this tolerance would be adjusted in a tool
-MCMT_tolerance <- 0.6 
-
-match_filt_SL_df <- match_full_SL_df %>% 
-  mutate(MCMT_diff = SL_MCMT - PPU_MCMT) %>% 
-  filter(abs(MCMT_diff) <= MCMT_tolerance) %>% 
-  select(PPU_ID, SL_ID, climate_period, PPU_MCMT, SL_MCMT, MCMT_diff) %>% 
-  arrange(PPU_ID, climate_period, SL_ID) 
-
-# check 
-str(match_filt_SL_df) 
-nrow(match_filt_SL_df)
-  # 943 rows
-
-  # much less bc only keeping matches
-(943/9296)*100 # 10.14415% of SLs across SRME are matches for the case study PPUs
-
-# quick summary: match counts per PPU per climate period (# matching PCUs)
-match_SL_summary <- match_filt_SL_df %>%
-  group_by(PPU_ID, climate_period) %>%
-  summarise(n_matches = n(), .groups = "drop") %>%
-  pivot_wider(names_from = climate_period, values_from = n_matches) %>%
-  arrange(PPU_ID)
-
-print(match_SL_summary)
-
-
-## (E) create table ----
-
-# this table/ SpatVector will serve as an intermediate product to show the utility 
-# of the relational lookup table (too large; >9k rows to show in the paper/ dataset)
-
-# it will be 1) in the supplemental .csv as a tab, and 2) attached as an attribute table to a SL SpatVector/ shapefile 
-
-# it has 8 added match columns for the Case Study (CS) PPUs (in addition to the attributes created in Part 2)
-# 1 column with the number of matching PPUs for each clim period/scenario (n_match)
-# 1 column with a list of matching PPUs for each clim period/scenario (PPU_list)
-# ref, curr, ssp2, and ssp5
-
-
-# build count and list summaries from match_filt_SL_df
-SL_match_wide <- match_filt_SL_df %>%
-  group_by(SL_ID, climate_period) %>%
-  summarise(
-    n_match  = n_distinct(PPU_ID),
-    PPU_list = paste(sort(unique(PPU_ID)), collapse = ", "),
-    .groups  = "drop"
-  ) %>%
-  pivot_wider(
-    names_from  = climate_period,
-    values_from = c(n_match, PPU_list),
-    names_glue  = "{climate_period}_{.value}"
-  ) %>%
-  rename(
-    ref_match  = ref_1961_1990_n_match,
-    ref_list   = ref_1961_1990_PPU_list,
-    curr_match = curr_2011_2040_n_match,
-    curr_list  = curr_2011_2040_PPU_list,
-    ssp2_match = ssp2_2041_2070_n_match, 
-    ssp2_list  = ssp2_2041_2070_PPU_list,
-    ssp5_match = ssp5_2041_2070_n_match,
-    ssp5_list  = ssp5_2041_2070_PPU_list
-  ) %>%
-  # replace NAs with 0 for count columns only
-  mutate(across(ends_with("_match"), ~ replace_na(., 0))) %>% 
-  select(SL_ID, ref_match, ref_list, curr_match, curr_list,
-         ssp2_match, ssp2_list, ssp5_match, ssp5_list)
-
-str(SL_match_wide)
-
-### join back to full SL dataframe ----
-SRME_SLs_CS_df <- ref_MCMT_SL_df %>%
-  left_join(SL_match_wide, by = "SL_ID")
-
-# check
-str(SRME_SLs_CS_df)
-nrow(SRME_SLs_CS_df) 
-# should still be 166 (all SLs in SRME with lat/long)
-
-
-### join back to full SL SpatVector ----
-# select only new cols and ID
-# SL_matches <- SRME_SLs_CS_df %>% 
-  #select(SL_ID, ref_match, ref_list, curr_match, curr_list, 
-       #  ssp2_match, ssp2_list, ssp5_match, ssp5_list)
-
-SRME_SL_CS_vect <- SRME_seed_poly_vect %>% 
-  left_join(SRME_SLs_CS_df, by = "SL_ID")
-
-#### write & read ----
-writeVector(SRME_SL_CS_vect, "./CaseStudy_S4F/SLs/SRME_SL_CS_vect.shp")
-SRME_SL_CS_vect <- vect("./CaseStudy_S4F/SLs/SRME_SL_CS_vect.shp")
-
-
-# check
-SRME_SL_CS_df <- as.data.frame(SRME_SL_CS_vect)
-str(SRME_SL_CS_df)
-
-#### write & read ----
-write.csv(SRME_SLs_CS_df, "./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", row.names = FALSE)
-SRME_SLs_CS_df <- read.csv("./CaseStudy_S4F/CSVs/SRME_SLs_CS_df.csv", check.names = FALSE)
-
-
-# need points for easier visualization in Arc
-SRME_seed_points_vect <- vect("./SRME_S4F/.shp/SRME_seed_points_vect.shp")
-
-SRME_SL_CS_pts_vect <- SRME_seed_points_vect %>% 
-  left_join(SRME_SLs_CS_df, by = "SL_ID")
-
-#### write & read ----
-writeVector(SRME_SL_CS_pts_vect, "./CaseStudy_S4F/SLs/SRME_SL_CS_pts_vect.shp")
-SRME_SL_CS_pts_vect <- vect("./CaseStudy_S4F/SLs/SRME_SL_CS_pts_vect.shp")
-
 
