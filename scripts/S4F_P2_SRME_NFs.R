@@ -388,7 +388,7 @@ seed_within <- relate(seed_points_vect, SRME_NFs_vect, relation = "within")
 # add as attribute to the spatvector
 seed_points_vect$within_SRME <- seed_within
 
-# and we don't need the other attributes
+# and we don't need the other attributes that came with the .csv
 SRME_seed_points_vect <- seed_points_vect %>% 
   filter(within_SRME == "TRUE") %>% 
   select(SL_ID, Lot, species, nursery, Year, Balance)
@@ -408,6 +408,29 @@ seed_points_df <- as.data.frame(SRME_seed_points_vect)
 # make a circular buffer poly with 564 m width (~ 1km^2 area)
 SRME_seed_poly_vect <- buffer(SRME_seed_points_vect, width = 564)
 plot(SRME_seed_poly_vect)
+
+
+### add MCMT ----
+# using ClimateNA 30-year normal
+# Mean Coldest Month Temp (MCMT) during the reference period (1961-1990)
+
+ref_MCMT_rast <- rast("Normal_1961_1990_MCMT.tif")
+crs(ref_MCMT_rast) # EPSG: 8806
+# project
+ref_MCMT_rast <- project(ref_MCMT_rast, "EPSG:5070")
+names(ref_MCMT_rast) <- "ref_MCMT"
+
+# as an extracted median MCMT column
+ref_MCMT_SL_df <- extract(ref_MCMT_rast, SRME_seed_poly_vect, fun = median, na.rm = TRUE)
+# adjust col names
+ref_MCMT_SL_df <- ref_MCMT_SL_df %>% 
+  mutate(SL_ID = SRME_seed_poly_vect$SL_ID) %>% 
+  select(-1)
+str(ref_MCMT_SL_df)
+
+# add back to SpatVector
+SRME_seed_poly_vect <- SRME_seed_poly_vect %>% 
+  left_join(ref_MCMT_SL_df, by = "SL_ID")
 
 #### write & read ----
 writeVector(SRME_seed_poly_vect, "./SRME_S4F/.shp/SRME_seed_poly_vect.shp")
@@ -616,15 +639,10 @@ extract_road_dist <- extract_road_dist %>%
 
 ### MCMT ----
 # using Mean Coldest Month Temp (MCMT) during the reference period (1961-1990)
-MCMT_CONUS <- rast("Normal_1961_1990_MCMT.tif")
-crs(MCMT_CONUS) # EPSG: 8806
-# project
-MCMT_CONUS_projected <- project(MCMT_CONUS, "EPSG:5070")
-# crop & mask 
-MCMT_SRME <- crop(MCMT_CONUS_projected, SRME_NFs_vect, mask = TRUE)
+# loaded in step 2-D above for SL polygons
 
 # extract
-extract_MCMT <- extract(MCMT_SRME, SRME_PCUs, fun = median, na.rm = TRUE)
+extract_MCMT <- extract(ref_MCMT_rast, SRME_PCUs, fun = median, na.rm = TRUE)
 str(extract_MCMT)
 # adjust
 extract_MCMT <- extract_MCMT %>% 
